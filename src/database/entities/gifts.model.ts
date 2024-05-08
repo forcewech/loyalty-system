@@ -1,4 +1,4 @@
-import { Column, HasMany, Model, PrimaryKey, Table } from 'sequelize-typescript';
+import { AutoIncrement, Column, HasMany, Model, PrimaryKey, Table } from 'sequelize-typescript';
 import { ProductStore } from './product_stores.model';
 import { UserReward } from './user_rewards.model';
 
@@ -8,6 +8,7 @@ import { UserReward } from './user_rewards.model';
 })
 export class Gift extends Model {
   @PrimaryKey
+  @AutoIncrement
   @Column
   id: number;
 
