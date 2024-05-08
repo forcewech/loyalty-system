@@ -7,16 +7,16 @@ module.exports = {
       id: {
         allowNull: false,
         primaryKey: true,
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4
+        autoIncrement: true,
+        type: Sequelize.INTEGER
       },
       store_id: {
-        type: Sequelize.UUID,
-        references: { model: 'stores', key: 'store_id' }
+        type: Sequelize.INTEGER,
+        references: { model: 'stores', key: 'id' }
       },
       product_id: {
-        type: Sequelize.UUID,
-        references: { model: 'gifts', key: 'product_id' }
+        type: Sequelize.INTEGER,
+        references: { model: 'gifts', key: 'id' }
       }
     });
   },

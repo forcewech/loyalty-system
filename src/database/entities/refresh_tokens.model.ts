@@ -1,5 +1,4 @@
-import { BelongsTo, Column, ForeignKey, HasMany, Model, Table } from 'sequelize-typescript';
-import { StoreRank } from './store_ranks.model';
+import { BelongsTo, Column, ForeignKey, Model, PrimaryKey, Table } from 'sequelize-typescript';
 import { User } from './users.model';
 
 @Table({
@@ -7,8 +6,9 @@ import { User } from './users.model';
   underscored: true
 })
 export class RefreshToken extends Model {
+  @PrimaryKey
   @Column
-  tokenId: string;
+  id: number;
 
   @Column
   token: string;

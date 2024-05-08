@@ -7,15 +7,15 @@ module.exports = {
       tokenId: {
         allowNull: false,
         primaryKey: true,
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4
+        autoIncrement: true,
+        type: Sequelize.INTEGER
       },
       token: {
         type: Sequelize.STRING
       },
       user_id: {
-        type: Sequelize.UUID,
-        references: { model: 'users', key: 'user_id' }
+        type: Sequelize.INTEGER,
+        references: { model: 'users', key: 'id' }
       },
       expiry_date: {
         type: Sequelize.DATE

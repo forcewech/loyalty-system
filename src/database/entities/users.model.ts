@@ -1,4 +1,4 @@
-import { BelongsTo, Column, DataType, ForeignKey, HasMany, Model, Table } from 'sequelize-typescript';
+import { BelongsTo, Column, DataType, ForeignKey, HasMany, Model, PrimaryKey, Table } from 'sequelize-typescript';
 import { EGender } from 'src/constants';
 import { OrderDetail } from './order_details.model';
 import { Rank } from './ranks.model';
@@ -10,8 +10,9 @@ import { RefreshToken } from './refresh_tokens.model';
   underscored: true
 })
 export class User extends Model {
+  @PrimaryKey
   @Column
-  userId: string;
+  id: number;
 
   @Column
   fullName: string;

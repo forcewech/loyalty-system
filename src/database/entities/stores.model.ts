@@ -1,4 +1,4 @@
-import { Column, HasMany, Model, Table } from 'sequelize-typescript';
+import { Column, HasMany, Model, PrimaryKey, Table } from 'sequelize-typescript';
 import { OrderDetail } from './order_details.model';
 import { ProductStore } from './product_stores.model';
 import { StoreRank } from './store_ranks.model';
@@ -8,8 +8,9 @@ import { StoreRank } from './store_ranks.model';
   underscored: true
 })
 export class Store extends Model {
+  @PrimaryKey
   @Column
-  storeId: string;
+  id: number;
 
   @Column
   name: string;

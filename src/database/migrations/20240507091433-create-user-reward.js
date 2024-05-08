@@ -7,20 +7,20 @@ module.exports = {
       id: {
         allowNull: false,
         primaryKey: true,
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4
+        autoIncrement: true,
+        type: Sequelize.INTEGER
       },
       user_id: {
-        type: Sequelize.UUID,
-        references: { model: 'users', key: 'user_id' }
+        type: Sequelize.INTEGER,
+        references: { model: 'users', key: 'id' }
       },
       rank_id: {
-        type: Sequelize.UUID,
-        references: { model: 'ranks', key: 'rank_id' }
+        type: Sequelize.INTEGER,
+        references: { model: 'ranks', key: 'id' }
       },
       product_id: {
-        type: Sequelize.UUID,
-        references: { model: 'gifts', key: 'product_id' }
+        type: Sequelize.INTEGER,
+        references: { model: 'gifts', key: 'id' }
       }
     });
   },

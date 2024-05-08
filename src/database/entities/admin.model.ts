@@ -1,12 +1,13 @@
-import { Column, Model, Table } from 'sequelize-typescript';
+import { Column, Model, PrimaryKey, Table } from 'sequelize-typescript';
 
 @Table({
   tableName: 'admin',
   underscored: true
 })
 export class Admin extends Model {
+  @PrimaryKey
   @Column
-  adminId: string;
+  id: number;
 
   @Column
   email: string;

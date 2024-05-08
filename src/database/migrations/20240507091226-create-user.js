@@ -4,15 +4,15 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('users', {
-      user_id: {
+      id: {
         allowNull: false,
         primaryKey: true,
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4
+        autoIncrement: true,
+        type: Sequelize.INTEGER
       },
       rank_id: {
-        type: Sequelize.UUID,
-        references: { model: 'ranks', key: 'rank_id' }
+        type: Sequelize.INTEGER,
+        references: { model: 'ranks', key: 'id' }
       },
       full_name: {
         type: Sequelize.STRING
