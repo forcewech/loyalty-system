@@ -11,10 +11,12 @@ module.exports = {
         defaultValue: Sequelize.UUIDV4
       },
       store_id: {
-        type: Sequelize.UUID
+        type: Sequelize.UUID,
+        references: { model: 'stores', key: 'store_id' }
       },
       rank_id: {
-        type: Sequelize.UUID
+        type: Sequelize.UUID,
+        references: { model: 'ranks', key: 'rank_id' }
       }
     });
   },

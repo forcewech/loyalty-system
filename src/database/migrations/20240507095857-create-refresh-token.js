@@ -14,7 +14,8 @@ module.exports = {
         type: Sequelize.STRING
       },
       user_id: {
-        type: Sequelize.UUID
+        type: Sequelize.UUID,
+        references: { model: 'users', key: 'user_id' }
       },
       expiry_date: {
         type: Sequelize.DATE

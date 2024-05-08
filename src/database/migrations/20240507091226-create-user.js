@@ -10,6 +10,10 @@ module.exports = {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4
       },
+      rank_id: {
+        type: Sequelize.UUID,
+        references: { model: 'ranks', key: 'rank_id' }
+      },
       full_name: {
         type: Sequelize.STRING
       },
