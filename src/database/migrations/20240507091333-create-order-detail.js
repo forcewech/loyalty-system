@@ -27,6 +27,14 @@ module.exports = {
       },
       total_point: {
         type: Sequelize.FLOAT
+      },
+      created_at: {
+        allowNull: false,
+        type: Sequelize.DATE
+      },
+      updated_at: {
+        allowNull: false,
+        type: Sequelize.DATE
       }
     });
   },

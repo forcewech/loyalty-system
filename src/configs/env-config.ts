@@ -12,3 +12,11 @@ export const postgresql = {
   password: process.env.POSTGRES_PASSWORD || 'anhyeuem',
   database: process.env.POSTGRES_DATABASE || 'final-project'
 };
+
+export const token = {
+  expireTime: process.env.ACCESS_TOKEN_EXPIRE_TIME || '30d',
+  secretKey: process.env.ACCESS_TOKEN_SECRET_KEY || '5239955f-4e01-4873-aca9-5183816ae4a9',
+
+  rfExpireTime: process.env.REFRESH_TOKEN_EXPIRE_TIME || '90d',
+  rfSecretKey: process.env.REFRESH_TOKEN_SECRET_KEY || 'f23e4ace-dd6b-419f-8e29-2419504e14c5'
+};

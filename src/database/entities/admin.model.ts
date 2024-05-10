@@ -1,4 +1,4 @@
-import { Column, Model, PrimaryKey, Table } from 'sequelize-typescript';
+import { AutoIncrement, Column, Model, PrimaryKey, Table } from 'sequelize-typescript';
 
 @Table({
   tableName: 'admin',
@@ -6,6 +6,7 @@ import { Column, Model, PrimaryKey, Table } from 'sequelize-typescript';
 })
 export class Admin extends Model {
   @PrimaryKey
+  @AutoIncrement
   @Column
   id: number;
 

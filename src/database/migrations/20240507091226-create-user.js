@@ -34,6 +34,14 @@ module.exports = {
       },
       reserve_points: {
         type: Sequelize.FLOAT
+      },
+      created_at: {
+        allowNull: false,
+        type: Sequelize.DATE
+      },
+      updated_at: {
+        allowNull: false,
+        type: Sequelize.DATE
       }
     });
   },

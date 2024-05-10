@@ -1,4 +1,4 @@
-import { BelongsTo, Column, ForeignKey, Model, PrimaryKey, Table } from 'sequelize-typescript';
+import { AutoIncrement, BelongsTo, Column, ForeignKey, Model, PrimaryKey, Table } from 'sequelize-typescript';
 import { User } from './users.model';
 
 @Table({
@@ -7,6 +7,7 @@ import { User } from './users.model';
 })
 export class RefreshToken extends Model {
   @PrimaryKey
+  @AutoIncrement
   @Column
   id: number;
 

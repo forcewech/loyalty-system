@@ -17,6 +17,14 @@ module.exports = {
       product_id: {
         type: Sequelize.INTEGER,
         references: { model: 'gifts', key: 'id' }
+      },
+      created_at: {
+        allowNull: false,
+        type: Sequelize.DATE
+      },
+      updated_at: {
+        allowNull: false,
+        type: Sequelize.DATE
       }
     });
   },
