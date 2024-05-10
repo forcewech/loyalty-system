@@ -2,10 +2,10 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PostgresqlModule } from './database/postgresql.module';
-import { StoresModule } from './modules';
+import { AdminModule, StoresModule, UsersModule } from './modules';
 
 @Module({
-  imports: [PostgresqlModule, StoresModule],
+  imports: [PostgresqlModule, StoresModule, UsersModule, AdminModule],
   controllers: [AppController],
   providers: [AppService]
 })

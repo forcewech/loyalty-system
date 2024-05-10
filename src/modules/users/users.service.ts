@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersRepository } from './users.repository';
+import { EncryptHelper } from 'src/utils';
 
 @Injectable()
 export class UsersService {
@@ -9,7 +10,8 @@ export class UsersService {
 
   async create(body: CreateUserDto) {
     const payload = body;
-    const user = await this.usersRepository.create({ ...payload });
+    const hashPassword = await EncryptHelper.hash(payload.password);
+    const user = await this.usersRepository.create({ ...payload, password: hashPassword });
     return {
       user
     };
@@ -28,7 +30,7 @@ export class UsersService {
   }
 
   async update(id: number, body: UpdateUserDto) {
-    const payload = body;
+    const payload = body.password ? { ...body, password: await EncryptHelper.hash(body.password) } : body;
     const updateUser = await this.usersRepository.update(
       {
         ...payload

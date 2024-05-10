@@ -7,7 +7,7 @@ import { UpdateStoreDto } from './dto/update-store.dto';
 export class StoresController {
   constructor(private readonly storesService: StoresService) {}
 
-  @Post('')
+  @Post()
   create(@Body() createStoreDto: CreateStoreDto) {
     return this.storesService.create(createStoreDto);
   }
