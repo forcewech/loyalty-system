@@ -40,6 +40,11 @@ export class User extends Model {
   @Column
   phone: string;
 
+  @Column({
+    defaultValue: 'client'
+  })
+  role: string;
+
   @Column
   rewardPoints: number;
 

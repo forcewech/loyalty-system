@@ -9,10 +9,9 @@ export class UserGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<any> {
     const req = context.switchToHttp().getRequest();
-    const authorization = req.headers.authorization || String(req.cookies.JWT);
+    const authorization = req.headers?.authorization || String(req.cookies?.JWT);
     const userInfo = await this.verifyAccessToken(authorization);
     req.user = userInfo;
-
     return true;
   }
 

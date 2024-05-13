@@ -18,4 +18,9 @@ export class Admin extends Model {
 
   @Column
   fullName: string;
+
+  @Column({
+    defaultValue: 'admin'
+  })
+  role: string;
 }

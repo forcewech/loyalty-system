@@ -32,9 +32,9 @@ export class AdminService {
     if (!admin) {
       ErrorHelper.BadRequestException(ADMIN.ADMIN_NOT_FOUND);
     }
-    if (!admin.password) ErrorHelper.BadRequestException(ADMIN.INVALID_PASSWORD);
+    if (password && !admin.password) ErrorHelper.BadRequestException(ADMIN.INVALID_PASSWORD);
 
-    const token = this.generateToken({ id: admin.id });
+    const token = this.generateToken({ id: admin.id, role: admin.role });
     delete admin.password;
     return {
       ...token,
