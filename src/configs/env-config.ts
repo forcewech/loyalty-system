@@ -36,3 +36,9 @@ export const emailSender = {
   host: process.env.MAIL_HOST || 'smtp.gmail.com',
   from: process.env.MAIL_HOST || 'dungnttn02@gmail.com'
 };
+
+export const cloudinaryConfig = {
+  cloud_name: process.env.CLOUD_NAME || 'deajpt0zz',
+  api_key: process.env.API_KEY || '587164376164896',
+  api_secret: process.env.API_SECRET || 'EXxw1VN0vw4mFWAtig2FojqVnuQ'
+};

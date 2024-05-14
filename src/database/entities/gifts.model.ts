@@ -19,9 +19,6 @@ export class Gift extends Model {
   redemptionPoints: string;
 
   @Column
-  image: string;
-
-  @Column
   expirationDate: Date;
 
   @Column
@@ -29,6 +26,9 @@ export class Gift extends Model {
 
   @Column
   description: string;
+
+  @Column
+  image: string;
 
   @HasMany(() => UserReward)
   userRewards: UserReward[];

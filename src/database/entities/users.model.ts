@@ -7,7 +7,8 @@ import {
   HasMany,
   Model,
   PrimaryKey,
-  Table
+  Table,
+  Unique
 } from 'sequelize-typescript';
 import { EGender } from 'src/constants';
 import { OrderDetail } from './order_details.model';
@@ -28,6 +29,7 @@ export class User extends Model {
   @Column
   fullName: string;
 
+  @Unique
   @Column
   email: string;
 
@@ -37,6 +39,7 @@ export class User extends Model {
   @Column({ type: DataType.ENUM(EGender.MALE, EGender.FEMALE) })
   gender: string;
 
+  @Unique
   @Column
   phone: string;
 

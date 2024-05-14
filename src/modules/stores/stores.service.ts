@@ -23,6 +23,11 @@ export class StoresService {
   async register(body: CreateStoreDto) {
     const OTP = CommonHelper.generateOTP();
     const payload = body;
+    const store = await this.storesRepository.create({
+      ...payload,
+      otpCode: OTP,
+      codeExpireTime: new Date().setMinutes(new Date().getMinutes() + EXPIRE_TIME_OTP)
+    });
     await this.sendMail.add(
       'register',
       {
@@ -33,11 +38,6 @@ export class StoresService {
         removeOnComplete: true
       }
     );
-    const store = await this.storesRepository.create({
-      ...payload,
-      otpCode: OTP,
-      codeExpireTime: new Date().setMinutes(new Date().getMinutes() + EXPIRE_TIME_OTP)
-    });
     return {
       store
     };
@@ -134,7 +134,9 @@ export class StoresService {
       ErrorHelper.BadRequestException(STORE.STORE_NOT_FOUND);
     }
     if (password && !store.password) ErrorHelper.BadRequestException(STORE.INVALID_PASSWORD);
-
+    if (store.status === EStoreStatus.INACTIVE) {
+      ErrorHelper.BadRequestException(STORE.STORE_HAS_NOT_VERIFIED);
+    }
     const token = this.generateToken({ id: store.id, role: store.role });
     delete store.password;
     return {

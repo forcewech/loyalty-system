@@ -1,23 +1,22 @@
+import { MailerModule } from '@nestjs-modules/mailer';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { emailSender, redis } from './configs';
 import { PostgresqlModule } from './database/postgresql.module';
 import { AdminModule, StoresModule, UsersModule } from './modules';
-import { MailerModule } from '@nestjs-modules/mailer';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { BullModule } from '@nestjs/bull';
-import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
-import { join } from 'path';
-import { emailSender, redis } from './configs';
-import { APP_GUARD } from '@nestjs/core';
-import { RolesGuard } from './utils/guards/roles.guard';
-import { UserGuard } from './utils/guards';
+import { GiftsModule } from './modules/gifts/gifts.module';
 
 @Module({
   imports: [
     PostgresqlModule,
     StoresModule,
     UsersModule,
+    GiftsModule,
     AdminModule,
     ConfigModule.forRoot(),
     MailerModule.forRootAsync({

@@ -1,4 +1,4 @@
-import { AutoIncrement, Column, DataType, HasMany, Model, PrimaryKey, Table } from 'sequelize-typescript';
+import { AutoIncrement, Column, DataType, HasMany, Model, PrimaryKey, Table, Unique } from 'sequelize-typescript';
 import { OrderDetail } from './order_details.model';
 import { ProductStore } from './product_stores.model';
 import { StoreRank } from './store_ranks.model';
@@ -14,12 +14,14 @@ export class Store extends Model {
   @Column
   id: number;
 
+  @Unique
   @Column
   name: string;
 
   @Column
   address: string;
 
+  @Unique
   @Column
   email: string;
 
