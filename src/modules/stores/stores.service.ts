@@ -2,7 +2,7 @@ import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { Queue } from 'bull';
 import { EStoreStatus, EXPIRE_TIME_OTP, STORE } from 'src/constants';
-import { CommonHelper, ErrorHelper, TokenHelper } from 'src/utils';
+import { CommonHelper, EncryptHelper, ErrorHelper, TokenHelper } from 'src/utils';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { EmailDto } from './dto/email.dto';
 import { OtpDto } from './dto/otp.dto';
@@ -11,22 +11,97 @@ import { StoresRepository } from './stores.repository';
 import { IToken } from 'src/interfaces';
 import { token } from 'src/configs';
 import { LoginStoreDto } from './dto/login-store.dtos';
+import { StoreUsersRepository } from '../store_users';
+import { UsersRepository } from '../users';
+import { CreateUserDto } from '../users/dto/create-user.dto';
+import { Rank, Store, User } from 'src/database';
+import { UpdateUserDto } from '../users/dto/update-user.dto';
 
 @Injectable()
 export class StoresService {
   constructor(
     private storesRepository: StoresRepository,
+    private storeUsersRepository: StoreUsersRepository,
+    private usersRepository: UsersRepository,
     @InjectQueue('send-mail')
     private sendMail: Queue
   ) {}
 
+  async createUserInStore(body: CreateUserDto, store: Store) {
+    const payload = body;
+    const hashPassword = await EncryptHelper.hash(payload.password);
+    const data = await this.usersRepository.create({ ...payload, password: hashPassword });
+    return await this.storeUsersRepository.create({
+      storeId: store.id,
+      rankId: data.rankId,
+      userId: data.id
+    });
+  }
+
+  async updateUserInStore(id: number, body: UpdateUserDto, store: Store) {
+    const hashPassword = await EncryptHelper.hash(body.password);
+    const payload = body.password ? { ...body, password: hashPassword } : body;
+    const isUserInStore = await this.storeUsersRepository.findOne({
+      where: {
+        userId: id,
+        storeId: store.id
+      }
+    });
+    if (!isUserInStore) {
+      ErrorHelper.BadRequestException(STORE.USER_NOT_IN_STORE);
+    }
+    return await this.usersRepository.update(
+      { ...payload },
+      {
+        where: {
+          id
+        }
+      }
+    );
+  }
+
+  async deleteUserInStore(id: number, store: Store) {
+    const isUserInStore = await this.storeUsersRepository.findOne({
+      where: {
+        userId: id,
+        storeId: store.id
+      }
+    });
+    if (!isUserInStore) {
+      ErrorHelper.BadRequestException(STORE.USER_NOT_IN_STORE);
+    }
+    return await this.usersRepository.delete({
+      where: {
+        id
+      }
+    });
+  }
+
+  async getUsersInStore(store: Store) {
+    return await this.storeUsersRepository.find({
+      where: {
+        storeId: store.id
+      },
+      attributes: ['id', 'storeId', 'createdAt', 'updatedAt'],
+      include: [
+        {
+          model: User,
+          attributes: { exclude: ['password'] }
+        }
+      ]
+    });
+  }
+
   async register(body: CreateStoreDto) {
     const OTP = CommonHelper.generateOTP();
     const payload = body;
+    const hashPassword = await EncryptHelper.hash(payload.password);
     const store = await this.storesRepository.create({
       ...payload,
+      password: hashPassword,
       otpCode: OTP,
-      codeExpireTime: new Date().setMinutes(new Date().getMinutes() + EXPIRE_TIME_OTP)
+      codeExpireTime: new Date().setMinutes(new Date().getMinutes() + EXPIRE_TIME_OTP),
+      attributes: { exclude: ['password', 'otpCode', 'codeExpireTime'] }
     });
     await this.sendMail.add(
       'register',
@@ -133,7 +208,8 @@ export class StoresService {
     if (!store) {
       ErrorHelper.BadRequestException(STORE.STORE_NOT_FOUND);
     }
-    if (password && !store.password) ErrorHelper.BadRequestException(STORE.INVALID_PASSWORD);
+    const isValidPassword = await EncryptHelper.compare(password, store.password);
+    if (!isValidPassword) ErrorHelper.BadRequestException(STORE.INVALID_PASSWORD);
     if (store.status === EStoreStatus.INACTIVE) {
       ErrorHelper.BadRequestException(STORE.STORE_HAS_NOT_VERIFIED);
     }

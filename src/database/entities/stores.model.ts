@@ -3,6 +3,7 @@ import { OrderDetail } from './order_details.model';
 import { ProductStore } from './product_stores.model';
 import { StoreRank } from './store_ranks.model';
 import { EStoreStatus } from 'src/constants';
+import { StoreUser } from './store_users.model';
 
 @Table({
   tableName: 'stores',
@@ -52,6 +53,9 @@ export class Store extends Model {
 
   @HasMany(() => StoreRank)
   storeRanks: StoreRank[];
+
+  @HasMany(() => StoreUser)
+  storeUsers: StoreUser[];
 
   @HasMany(() => ProductStore)
   productStores: ProductStore[];

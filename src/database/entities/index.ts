@@ -8,3 +8,4 @@ export * from './product_stores.model';
 export * from './store_ranks.model';
 export * from './user_rewards.model';
 export * from './refresh_tokens.model';
+export * from './store_users.model';

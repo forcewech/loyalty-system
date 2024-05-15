@@ -14,9 +14,6 @@ import * as models from './entities';
         autoLoadModels: false,
         models: Object.values(models),
         logging: false,
-        query: {
-          raw: true
-        },
         dialectOptions: application.environment != 'local' ? sslConfig : {},
         ...postgresql
       })

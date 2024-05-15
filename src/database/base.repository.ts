@@ -67,10 +67,9 @@ export class BaseRepository<T extends Model> {
     return affectedRows;
   }
 
-  async delete(destroyOptions: DestroyOptions<T>, force = true): Promise<number> {
+  async delete(destroyOptions: DestroyOptions<T>): Promise<number> {
     return this.model.destroy({
-      ...destroyOptions,
-      force
+      ...destroyOptions
     });
   }
 

@@ -10,6 +10,7 @@ import { emailSender, redis } from './configs';
 import { PostgresqlModule } from './database/postgresql.module';
 import { AdminModule, StoresModule, UsersModule } from './modules';
 import { GiftsModule } from './modules/gifts/gifts.module';
+import { RanksModule } from './modules/ranks';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { GiftsModule } from './modules/gifts/gifts.module';
     StoresModule,
     UsersModule,
     GiftsModule,
+    RanksModule,
     AdminModule,
     ConfigModule.forRoot(),
     MailerModule.forRootAsync({
