@@ -50,7 +50,7 @@ export class StoresController {
   }
 
   @Post('/login')
-  async login(@Body() payload: LoginStoreDto) {
+  login(@Body() payload: LoginStoreDto) {
     return this.storesService.login(payload);
   }
 

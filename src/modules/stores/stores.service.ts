@@ -1,21 +1,21 @@
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { Queue } from 'bull';
-import { EStoreStatus, EXPIRE_TIME_OTP, STORE } from 'src/constants';
-import { CommonHelper, EncryptHelper, ErrorHelper, TokenHelper } from 'src/utils';
-import { CreateStoreDto } from './dto/create-store.dto';
-import { EmailDto } from './dto/email.dto';
-import { OtpDto } from './dto/otp.dto';
-import { UpdateStoreDto } from './dto/update-store.dto';
-import { StoresRepository } from './stores.repository';
-import { IToken } from 'src/interfaces';
 import { token } from 'src/configs';
-import { LoginStoreDto } from './dto/login-store.dtos';
+import { EStoreStatus, EXPIRE_TIME_OTP, STORE } from 'src/constants';
+import { Store, User } from 'src/database';
+import { IToken } from 'src/interfaces';
+import { CommonHelper, EncryptHelper, ErrorHelper, TokenHelper } from 'src/utils';
 import { StoreUsersRepository } from '../store_users';
 import { UsersRepository } from '../users';
 import { CreateUserDto } from '../users/dto/create-user.dto';
-import { Rank, Store, User } from 'src/database';
 import { UpdateUserDto } from '../users/dto/update-user.dto';
+import { CreateStoreDto } from './dto/create-store.dto';
+import { EmailDto } from './dto/email.dto';
+import { LoginStoreDto } from './dto/login-store.dtos';
+import { OtpDto } from './dto/otp.dto';
+import { UpdateStoreDto } from './dto/update-store.dto';
+import { StoresRepository } from './stores.repository';
 
 @Injectable()
 export class StoresService {
@@ -82,11 +82,11 @@ export class StoresService {
       where: {
         storeId: store.id
       },
-      attributes: ['id', 'storeId', 'createdAt', 'updatedAt'],
+      attributes: ['storeId'],
       include: [
         {
           model: User,
-          attributes: { exclude: ['password'] }
+          attributes: ['fullName', 'email']
         }
       ]
     });
@@ -100,8 +100,7 @@ export class StoresService {
       ...payload,
       password: hashPassword,
       otpCode: OTP,
-      codeExpireTime: new Date().setMinutes(new Date().getMinutes() + EXPIRE_TIME_OTP),
-      attributes: { exclude: ['password', 'otpCode', 'codeExpireTime'] }
+      codeExpireTime: new Date().setMinutes(new Date().getMinutes() + EXPIRE_TIME_OTP)
     });
     await this.sendMail.add(
       'register',
@@ -113,8 +112,12 @@ export class StoresService {
         removeOnComplete: true
       }
     );
+    const storeData = store.get({ plain: true });
+    delete storeData.password;
+    delete storeData.otpCode;
+    delete storeData.codeExpireTime;
     return {
-      store
+      storeData
     };
   }
 
@@ -185,7 +188,6 @@ export class StoresService {
       }
     );
   }
-
   private generateToken(payload: object): IToken {
     const { token: accessToken, expires } = TokenHelper.generate(payload, token.secretKey, token.expireTime);
     const { token: refreshToken } = TokenHelper.generate(payload, token.rfSecretKey, token.rfExpireTime);

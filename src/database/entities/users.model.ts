@@ -10,7 +10,7 @@ import {
   Table,
   Unique
 } from 'sequelize-typescript';
-import { EGender } from 'src/constants';
+import { EGender, EUserStatus } from 'src/constants';
 import { OrderDetail } from './order_details.model';
 import { Rank } from './ranks.model';
 import { UserReward } from './user_rewards.model';
@@ -55,6 +55,22 @@ export class User extends Model {
 
   @Column({ type: DataType.FLOAT, defaultValue: 0 })
   reservePoints: number;
+  @Column
+  otpCode: string;
+
+  @Column
+  codeExpireTime: Date;
+
+  @Column({
+    defaultValue: false
+  })
+  isCodeUsed: boolean;
+
+  @Column({
+    defaultValue: EUserStatus.INACTIVE,
+    type: DataType.ENUM(EUserStatus.INACTIVE, EUserStatus.ACTIVE)
+  })
+  status: string;
 
   @ForeignKey(() => Rank)
   @Column

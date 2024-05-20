@@ -46,6 +46,11 @@ export class Store extends Model {
   role: string;
 
   @Column({
+    defaultValue: 'fixed'
+  })
+  typePoint: string;
+
+  @Column({
     defaultValue: EStoreStatus.INACTIVE,
     type: DataType.ENUM(EStoreStatus.INACTIVE, EStoreStatus.ACTIVE)
   })

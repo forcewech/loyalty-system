@@ -8,6 +8,7 @@ import { RanksRepository } from './ranks.repository';
 @Module({
   imports: [SequelizeModule.forFeature([Rank])],
   controllers: [RanksController],
-  providers: [RanksService, RanksRepository]
+  providers: [RanksService, RanksRepository],
+  exports: [RanksRepository]
 })
 export class RanksModule {}

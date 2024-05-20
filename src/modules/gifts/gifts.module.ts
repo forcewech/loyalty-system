@@ -9,6 +9,7 @@ import { UploadsModule } from '../upload/uploads.module';
 @Module({
   imports: [SequelizeModule.forFeature([Gift]), UploadsModule],
   controllers: [GiftsController],
-  providers: [GiftsService, GiftsRepository]
+  providers: [GiftsService, GiftsRepository],
+  exports: [GiftsRepository]
 })
 export class GiftsModule {}

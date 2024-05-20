@@ -44,12 +44,14 @@
     "jsonwebtoken": "^9.0.2",
     "md5": "^2.3.0",
     "morgan": "^1.10.0",
+    "node-infobip": "github:kosinix/node-infobip",
     "nodemailer": "^6.9.13",
     "pg": "^8.11.5",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "sequelize": "^6.37.3",
-    "sequelize-typescript": "^2.1.6"
+    "sequelize-typescript": "^2.1.6",
+    "twilio": "^5.0.4"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

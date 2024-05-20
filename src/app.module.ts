@@ -11,6 +11,7 @@ import { PostgresqlModule } from './database/postgresql.module';
 import { AdminModule, StoresModule, UsersModule } from './modules';
 import { GiftsModule } from './modules/gifts/gifts.module';
 import { RanksModule } from './modules/ranks';
+import { OrderDetailsModule } from './order_details/order_details.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { RanksModule } from './modules/ranks';
     GiftsModule,
     RanksModule,
     AdminModule,
+    OrderDetailsModule,
     ConfigModule.forRoot(),
     MailerModule.forRootAsync({
       useFactory: async () => ({
@@ -51,7 +53,8 @@ import { RanksModule } from './modules/ranks';
           password: redis.password
         }
       })
-    })
+    }),
+    OrderDetailsModule
   ],
   controllers: [AppController],
   providers: [AppService]

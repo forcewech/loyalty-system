@@ -42,3 +42,10 @@ export const cloudinaryConfig = {
   api_key: process.env.API_KEY || '587164376164896',
   api_secret: process.env.API_SECRET || 'EXxw1VN0vw4mFWAtig2FojqVnuQ'
 };
+
+export const twilio = {
+  twilio_account_sid: process.env.TWILIO_ACCOUNT_SID || 'ACd4b66c66836a50c6f92a2249112a9f48',
+  twilio_auth_token: process.env.TWILIO_AUTH_TOKEN || '7074aef03353890d0c1895156b708beb',
+  twilio_verification_service_sid: process.env.TWILIO_VERIFICATION_SERVICE_SID || 'VA0160980a6fef66e518f70394be2da3bd',
+  twilio_sender_phone_number: process.env.TWILIO_SENDER_PHONE_NUMBER || '+84339832545'
+};

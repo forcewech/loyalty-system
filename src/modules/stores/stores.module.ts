@@ -19,6 +19,7 @@ import { UsersModule } from '../users';
     UsersModule
   ],
   controllers: [StoresController],
-  providers: [StoresService, StoresRepository, EmailConsumer]
+  providers: [StoresService, StoresRepository, EmailConsumer],
+  exports: [StoresRepository]
 })
 export class StoresModule {}
