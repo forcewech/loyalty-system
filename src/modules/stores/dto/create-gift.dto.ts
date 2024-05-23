@@ -4,8 +4,8 @@ export class CreateGiftDto {
   @IsString()
   name: string;
 
-  @IsString()
-  redemptionPoints: string;
+  @IsNumber()
+  redemptionPoints: number;
 
   @IsDate()
   expirationDate: Date;

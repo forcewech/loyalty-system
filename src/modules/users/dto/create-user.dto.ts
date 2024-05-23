@@ -32,4 +32,7 @@ export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
   phone: string;
+
+  @IsString()
+  storeId: string;
 }

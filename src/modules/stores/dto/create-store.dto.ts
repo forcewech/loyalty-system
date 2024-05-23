@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, IsStrongPassword } from 'class-validator';
 
 export class CreateStoreDto {
   @IsString()
@@ -11,9 +11,11 @@ export class CreateStoreDto {
 
   @IsEmail()
   @IsNotEmpty()
+  @IsString()
   email: string;
 
   @IsString()
   @IsNotEmpty()
+  @IsStrongPassword()
   password: string;
 }

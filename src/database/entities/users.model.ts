@@ -62,11 +62,6 @@ export class User extends Model {
   codeExpireTime: Date;
 
   @Column({
-    defaultValue: false
-  })
-  isCodeUsed: boolean;
-
-  @Column({
     defaultValue: EUserStatus.INACTIVE,
     type: DataType.ENUM(EUserStatus.INACTIVE, EUserStatus.ACTIVE)
   })

@@ -1,5 +1,5 @@
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
-import { ERoleType } from 'src/constants';
+import { ERoleType, USER } from 'src/constants';
 import { AuthUser, Roles, UserGuard } from 'src/utils';
 import { RolesGuard } from 'src/utils/guards/roles.guard';
 import { CreateOrderDetailDto } from './dto/create-order_detail.dto';
@@ -12,7 +12,8 @@ export class OrderDetailsController {
   @Post()
   @Roles(ERoleType.CLIENT)
   @UseGuards(UserGuard, RolesGuard)
-  create(@Body() createOrderDetailDto: CreateOrderDetailDto, @AuthUser() user) {
-    return this.orderDetailsService.create(createOrderDetailDto, user);
+  async create(@Body() createOrderDetailDto: CreateOrderDetailDto, @AuthUser() user) {
+    await this.orderDetailsService.create(createOrderDetailDto, user);
+    return { message: USER.PAYMENT_SUCCESS };
   }
 }

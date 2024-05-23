@@ -1,15 +1,11 @@
 import { Module } from '@nestjs/common';
-import { GiftsService } from './gifts.service';
-import { GiftsController } from './gifts.controller';
-import { GiftsRepository } from './gifts.repository';
-import { Gift } from 'src/database';
 import { SequelizeModule } from '@nestjs/sequelize';
-import { UploadsModule } from '../upload/uploads.module';
+import { Gift } from 'src/database';
+import { GiftsRepository } from './gifts.repository';
 
 @Module({
-  imports: [SequelizeModule.forFeature([Gift]), UploadsModule],
-  controllers: [GiftsController],
-  providers: [GiftsService, GiftsRepository],
+  imports: [SequelizeModule.forFeature([Gift])],
+  providers: [GiftsRepository],
   exports: [GiftsRepository]
 })
 export class GiftsModule {}

@@ -8,6 +8,11 @@ import { StoresRepository } from './stores.repository';
 import { StoresService } from './stores.service';
 import { StoreUsersModule } from '../store_users';
 import { UsersModule } from '../users';
+import { RanksModule } from '../ranks';
+import { RefreshTokensModule } from '../refresh_tokens';
+import { GiftsModule } from '../gifts/gifts.module';
+import { ProductStoresModule } from '../product_stores';
+import { UploadsModule } from '../upload/uploads.module';
 
 @Module({
   imports: [
@@ -16,7 +21,12 @@ import { UsersModule } from '../users';
       name: 'send-mail'
     }),
     StoreUsersModule,
-    UsersModule
+    UsersModule,
+    RanksModule,
+    RefreshTokensModule,
+    UploadsModule,
+    ProductStoresModule,
+    GiftsModule
   ],
   controllers: [StoresController],
   providers: [StoresService, StoresRepository, EmailConsumer],

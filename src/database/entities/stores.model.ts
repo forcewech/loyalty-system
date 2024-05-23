@@ -1,13 +1,26 @@
-import { AutoIncrement, Column, DataType, HasMany, Model, PrimaryKey, Table, Unique } from 'sequelize-typescript';
+import {
+  AutoIncrement,
+  BelongsToMany,
+  Column,
+  DataType,
+  HasMany,
+  Model,
+  PrimaryKey,
+  Table,
+  Unique
+} from 'sequelize-typescript';
 import { OrderDetail } from './order_details.model';
 import { ProductStore } from './product_stores.model';
 import { StoreRank } from './store_ranks.model';
 import { EStoreStatus } from 'src/constants';
 import { StoreUser } from './store_users.model';
+import { User } from './users.model';
+import { Gift } from './gifts.model';
 
 @Table({
   tableName: 'stores',
-  underscored: true
+  underscored: true,
+  paranoid: true
 })
 export class Store extends Model {
   @PrimaryKey
@@ -59,11 +72,11 @@ export class Store extends Model {
   @HasMany(() => StoreRank)
   storeRanks: StoreRank[];
 
-  @HasMany(() => StoreUser)
-  storeUsers: StoreUser[];
+  @BelongsToMany(() => User, () => StoreUser)
+  users!: User[];
 
-  @HasMany(() => ProductStore)
-  productStores: ProductStore[];
+  @BelongsToMany(() => Gift, () => ProductStore)
+  gifts!: Gift[];
 
   @HasMany(() => OrderDetail)
   orderDetails: OrderDetail[];

@@ -4,7 +4,8 @@ import { UserReward } from './user_rewards.model';
 
 @Table({
   tableName: 'gifts',
-  underscored: true
+  underscored: true,
+  paranoid: true
 })
 export class Gift extends Model {
   @PrimaryKey

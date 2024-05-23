@@ -24,7 +24,7 @@ export class OrderDetailsService {
     private ranksRepository: RanksRepository
   ) {}
 
-  async create(createOrderDetailDto: CreateOrderDetailDto, user: User) {
+  async create(createOrderDetailDto: CreateOrderDetailDto, user: User): Promise<void> {
     let totalPoint = FIXED_POINT_BRONZE;
     const { totalMoney, storeId } = createOrderDetailDto;
     const storeData = await this.storesRepository.findOne({
@@ -83,7 +83,7 @@ export class OrderDetailsService {
       userData['rankId'] = rankGold.id;
     }
     await userData.save();
-    return this.orderDetailsRepository.create({
+    await this.orderDetailsRepository.create({
       ...createOrderDetailDto,
       userId: userData.id,
       rankId: userData.rankId

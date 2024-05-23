@@ -14,10 +14,4 @@ export class ProductStore extends Model {
   @ForeignKey(() => Gift)
   @Column
   productId: number;
-
-  @BelongsTo(() => Store)
-  store: Store;
-
-  @BelongsTo(() => Gift)
-  gift: Gift;
 }

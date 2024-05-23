@@ -1,2 +1,2 @@
-export * from './gifts.controller';
-export * from './gifts.service';
+export * from './gifts.module';
+export * from './gifts.repository';

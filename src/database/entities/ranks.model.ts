@@ -4,7 +4,8 @@ import { User } from './users.model';
 
 @Table({
   tableName: 'ranks',
-  underscored: true
+  underscored: true,
+  paranoid: true
 })
 export class Rank extends Model {
   @PrimaryKey

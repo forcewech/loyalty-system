@@ -19,13 +19,4 @@ export class StoreUser extends Model {
   @ForeignKey(() => Rank)
   @Column
   rankId: number;
-
-  @BelongsTo(() => Store)
-  store: Store;
-
-  @BelongsTo(() => User)
-  user: User;
-
-  @BelongsTo(() => Rank)
-  rank: Rank;
 }

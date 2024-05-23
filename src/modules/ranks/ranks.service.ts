@@ -1,30 +1,43 @@
 import { Injectable } from '@nestjs/common';
+import { RANK } from 'src/constants';
+import { Rank } from 'src/database';
+import { ErrorHelper } from 'src/utils';
 import { CreateRankDto } from './dto/create-rank.dto';
-import { UpdateRankDto } from './dto/update-rank.dto';
 import { RanksRepository } from './ranks.repository';
 
 @Injectable()
 export class RanksService {
   constructor(private ranksRepository: RanksRepository) {}
 
-  create(body: CreateRankDto) {
+  async create(body: CreateRankDto): Promise<Rank> {
     const payload = body;
-    return this.ranksRepository.create({ ...payload });
+    const rank = await this.ranksRepository.findOne({
+      where: {
+        name: payload.name
+      }
+    });
+    if (rank) {
+      ErrorHelper.BadRequestException(RANK.NAME_IS_EXIST);
+    }
+    const data = await this.ranksRepository.create({ ...payload });
+    const dataRank = data.get({ plain: true });
+    delete dataRank.createdAt;
+    delete dataRank.updatedAt;
+    delete dataRank.deletedAt;
+    return { ...dataRank };
   }
 
-  findAll() {
-    return `This action returns all ranks`;
+  async remove(id: number): Promise<void> {
+    await this.ranksRepository.delete({
+      where: {
+        id
+      }
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} rank`;
-  }
-
-  update(id: number, updateRankDto: UpdateRankDto) {
-    return `This action updates a #${id} rank`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} rank`;
+  async findAll(): Promise<Rank[]> {
+    return this.ranksRepository.find({
+      attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] }
+    });
   }
 }

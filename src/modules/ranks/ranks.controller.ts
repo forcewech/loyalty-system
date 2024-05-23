@@ -1,34 +1,27 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { RanksService } from './ranks.service';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
+import { RANK } from 'src/constants';
 import { CreateRankDto } from './dto/create-rank.dto';
-import { UpdateRankDto } from './dto/update-rank.dto';
+import { RanksService } from './ranks.service';
 
 @Controller('ranks')
 export class RanksController {
   constructor(private readonly ranksService: RanksService) {}
 
   @Post()
-  create(@Body() createRankDto: CreateRankDto) {
-    return this.ranksService.create(createRankDto);
+  async create(@Body() createRankDto: CreateRankDto) {
+    const data = await this.ranksService.create(createRankDto);
+    return { message: RANK.CREATE_RANK_SUCCESSFULLY, data };
   }
 
   @Get()
-  findAll() {
-    return this.ranksService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.ranksService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateRankDto: UpdateRankDto) {
-    return this.ranksService.update(+id, updateRankDto);
+  async findAll() {
+    const data = await this.ranksService.findAll();
+    return { message: RANK.GET_ALL_RANK_SUCCESSFULLY, data };
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.ranksService.remove(+id);
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    await this.ranksService.remove(id);
+    return { message: RANK.DELETE_RANK_SUCCESSFULLY };
   }
 }

@@ -1,62 +1,109 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Headers,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards
+} from '@nestjs/common';
+import { AUTH, ERoleType, FIRST_PAGE, LIMIT_PAGE, USER } from 'src/constants';
+import { IToken } from 'src/interfaces';
+import { AuthUser, Roles, UserGuard } from 'src/utils';
+import { RolesGuard } from 'src/utils/guards/roles.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { OtpDto } from './dto/otp.dto';
 import { PhoneDto } from './dto/phone.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
-import { AuthUser, Roles, UserGuard } from 'src/utils';
-import { ERoleType } from 'src/constants';
-import { RolesGuard } from 'src/utils/guards/roles.guard';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  @Post('/register')
+  async register(@Body() createUserDto: CreateUserDto) {
+    const data = await this.usersService.register(createUserDto);
+    return { message: AUTH.REGISTER_SUCCESSFULLY, data };
   }
 
   @Post('/login')
   async login(@Body() payload: LoginUserDto) {
-    return this.usersService.login(payload);
+    const data = await this.usersService.login(payload);
+    return { message: AUTH.LOGIN_SUCCESSFULLY, data };
   }
 
-  @Get()
-  findAll() {
-    return this.usersService.findAll();
+  @Post('/logout')
+  @Roles(ERoleType.CLIENT)
+  @UseGuards(UserGuard, RolesGuard)
+  async logout(@Body() data: IToken, @Headers('authorization') authHeader: string) {
+    const accessToken = authHeader.split(' ')[1];
+    await this.usersService.logout(data, accessToken);
+    return { message: AUTH.LOGOUT_SUCCESSFULLY };
   }
 
   @Patch('/verify')
-  verify(@Body() otpDto: OtpDto) {
-    return this.usersService.verifyOtp(otpDto);
+  async verify(@Body() otpDto: OtpDto) {
+    await this.usersService.verifyOtp(otpDto);
+    return { message: USER.VERIFY_OTP_SUCCESSFULLY };
   }
 
   @Patch('/send-otp')
-  sendOtp(@Body() phoneDto: PhoneDto) {
-    return this.usersService.sendOtp(phoneDto);
+  async sendOtp(@Body() phoneDto: PhoneDto) {
+    await this.usersService.sendOtp(phoneDto);
+    return { message: USER.SEND_OTP_SUCCESSFULLY };
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  @Post()
+  @Roles(ERoleType.ADMIN)
+  @UseGuards(UserGuard, RolesGuard)
+  async create(@Body() createUserDto: CreateUserDto) {
+    const data = await this.usersService.create(createUserDto);
+    return { message: USER.CREATE_USER_SUCCESSFULLY, data };
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  @Roles(ERoleType.ADMIN)
+  @UseGuards(UserGuard, RolesGuard)
+  async update(@Param('id', ParseIntPipe) id: number, @Body() updateUserDto: UpdateUserDto) {
+    const data = await this.usersService.update(id, updateUserDto);
+    return { message: USER.UPDATE_USER_SUCCESSFULLY, data };
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  @Roles(ERoleType.ADMIN)
+  @UseGuards(UserGuard, RolesGuard)
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    await this.usersService.remove(id);
+    return { message: USER.DELETE_USER_SUCCESSFULLY };
+  }
+
+  @Get()
+  @Roles(ERoleType.ADMIN)
+  @UseGuards(UserGuard, RolesGuard)
+  async findAll(@Query('page') page: number, @Query('limit') limit: number) {
+    const data = await this.usersService.findAll(page || FIRST_PAGE, limit || LIMIT_PAGE);
+    return { message: USER.GET_ALL_USER_SUCCESSFULLY, data };
+  }
+
+  @Get(':id')
+  @Roles(ERoleType.ADMIN)
+  @UseGuards(UserGuard, RolesGuard)
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    const data = await this.usersService.findOne(id);
+    return { message: USER.GET_USER_SUCCESSFULLY, data };
   }
 
   @Patch('/redeem-gift/:id')
   @Roles(ERoleType.CLIENT)
   @UseGuards(UserGuard, RolesGuard)
-  redeemGift(@Param('id') id: number, @AuthUser() user) {
-    return this.usersService.redeemGift(id, user);
+  async redeemGift(@Param('id') id: number, @AuthUser() user) {
+    await this.usersService.redeemGift(id, user);
+    return { message: USER.REDEEM_GIFT_SUCCESSFULLY };
   }
 }

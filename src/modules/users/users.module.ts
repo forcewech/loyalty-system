@@ -7,9 +7,18 @@ import { UsersRepository } from './users.repository';
 import { TwilioModule } from '../twilio/twilio.module';
 import { RanksModule } from '../ranks';
 import { GiftsModule } from '../gifts/gifts.module';
+import { RefreshTokensModule } from '../refresh_tokens';
+import { StoreUsersModule } from '../store_users';
 
 @Module({
-  imports: [SequelizeModule.forFeature([User]), TwilioModule, RanksModule, GiftsModule],
+  imports: [
+    SequelizeModule.forFeature([User]),
+    TwilioModule,
+    RanksModule,
+    GiftsModule,
+    RefreshTokensModule,
+    StoreUsersModule
+  ],
   controllers: [UsersController],
   providers: [UsersService, UsersRepository],
   exports: [UsersService, UsersRepository]

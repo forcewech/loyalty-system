@@ -11,14 +11,13 @@ import { PostgresqlModule } from './database/postgresql.module';
 import { AdminModule, StoresModule, UsersModule } from './modules';
 import { GiftsModule } from './modules/gifts/gifts.module';
 import { RanksModule } from './modules/ranks';
-import { OrderDetailsModule } from './order_details/order_details.module';
+import { OrderDetailsModule } from './modules/order_details/order_details.module';
 
 @Module({
   imports: [
     PostgresqlModule,
     StoresModule,
     UsersModule,
-    GiftsModule,
     RanksModule,
     AdminModule,
     OrderDetailsModule,
@@ -53,8 +52,7 @@ import { OrderDetailsModule } from './order_details/order_details.module';
           password: redis.password
         }
       })
-    }),
-    OrderDetailsModule
+    })
   ],
   controllers: [AppController],
   providers: [AppService]
