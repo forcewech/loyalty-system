@@ -9,13 +9,12 @@ import {
   Table,
   Unique
 } from 'sequelize-typescript';
+import { EStoreStatus } from 'src/constants';
+import { Gift } from './gifts.model';
 import { OrderDetail } from './order_details.model';
 import { ProductStore } from './product_stores.model';
-import { StoreRank } from './store_ranks.model';
-import { EStoreStatus } from 'src/constants';
 import { StoreUser } from './store_users.model';
 import { User } from './users.model';
-import { Gift } from './gifts.model';
 
 @Table({
   tableName: 'stores',
@@ -68,9 +67,6 @@ export class Store extends Model {
     type: DataType.ENUM(EStoreStatus.INACTIVE, EStoreStatus.ACTIVE)
   })
   status: string;
-
-  @HasMany(() => StoreRank)
-  storeRanks: StoreRank[];
 
   @BelongsToMany(() => User, () => StoreUser)
   users!: User[];

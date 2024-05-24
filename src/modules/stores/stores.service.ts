@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { Queue } from 'bull';
 import { token } from 'src/configs';
 import { client } from 'src/configs/connectRedis';
-import { AUTH, EStoreStatus, EUserStatus, EXPIRE_TIME_OTP, STORE, USER } from 'src/constants';
+import { AUTH, EStoreStatus, EUserStatus, EXPIRE_TIME_OTP, GIFT, STORE, USER } from 'src/constants';
 import { Gift, Store, User } from 'src/database';
 import { IPaginationRes, IToken } from 'src/interfaces';
 import { CommonHelper, EncryptHelper, ErrorHelper, TokenHelper } from 'src/utils';
@@ -23,6 +23,7 @@ import { LoginStoreDto } from './dto/login-store.dtos';
 import { OtpDto } from './dto/otp.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { StoresRepository } from './stores.repository';
+import { UpdateGiftDto } from './dto/update-gift.dto';
 
 @Injectable()
 export class StoresService {
@@ -513,7 +514,81 @@ export class StoresService {
     return { ...giftData };
   }
 
-  async findAllGifts(store: Store) {
+  async updateGift(id: number, body: UpdateGiftDto, store: Store): Promise<Gift> {
+    const gift = await this.giftsRepository.findOne({
+      where: {
+        id
+      }
+    });
+    if (!gift) {
+      ErrorHelper.BadRequestException(GIFT.GIFT_NOT_FOUND);
+    }
+    const isGiftInStore = await this.productStoresRepository.findOne({
+      where: {
+        productId: id,
+        storeId: store.id
+      }
+    });
+    if (!isGiftInStore) {
+      ErrorHelper.BadRequestException(GIFT.GIFT_NOT_IN_STORE);
+    }
+    Object.assign(gift, body);
+    await gift.save();
+    const giftData = gift.get({ plain: true });
+    delete giftData.createdAt;
+    delete giftData.updatedAt;
+    delete giftData.deletedAt;
+    return {
+      ...giftData
+    };
+  }
+
+  async removeGift(id: number, store: Store): Promise<void> {
+    const gift = await this.giftsRepository.findOne({
+      where: {
+        id
+      }
+    });
+    if (!gift) {
+      ErrorHelper.BadRequestException(GIFT.GIFT_NOT_FOUND);
+    }
+    const isGiftInStore = await this.productStoresRepository.findOne({
+      where: {
+        productId: id,
+        storeId: store.id
+      }
+    });
+    if (!isGiftInStore) {
+      ErrorHelper.BadRequestException(GIFT.GIFT_NOT_IN_STORE);
+    }
+    await this.giftsRepository.delete({
+      where: { id }
+    });
+  }
+
+  async findOneGift(id: number, store: Store): Promise<Gift> {
+    const gift = await this.giftsRepository.findOne({
+      where: {
+        id
+      },
+      attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] }
+    });
+    if (!gift) {
+      ErrorHelper.BadRequestException(GIFT.GIFT_NOT_FOUND);
+    }
+    const isGiftInStore = await this.productStoresRepository.findOne({
+      where: {
+        productId: id,
+        storeId: store.id
+      }
+    });
+    if (!isGiftInStore) {
+      ErrorHelper.BadRequestException(GIFT.GIFT_NOT_IN_STORE);
+    }
+    return gift;
+  }
+
+  async findAllGifts(store: Store): Promise<Store[]> {
     return await this.storesRepository.find({
       where: {
         id: store.id

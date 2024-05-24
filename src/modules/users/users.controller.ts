@@ -21,6 +21,7 @@ import { OtpDto } from './dto/otp.dto';
 import { PhoneDto } from './dto/phone.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
+import { QuantityRedeemDto } from './dto/quantity-redeem.dts';
 
 @Controller('users')
 export class UsersController {
@@ -91,6 +92,14 @@ export class UsersController {
     return { message: USER.GET_ALL_USER_SUCCESSFULLY, data };
   }
 
+  @Get('/history-redeem')
+  @Roles(ERoleType.CLIENT)
+  @UseGuards(UserGuard, RolesGuard)
+  async getHistory(@AuthUser() user) {
+    const data = await this.usersService.getHistoryRedeem(user);
+    return { message: USER.GET_HISTORY_REDEEM_GIFT_SUCCESSFULLY, data };
+  }
+
   @Get(':id')
   @Roles(ERoleType.ADMIN)
   @UseGuards(UserGuard, RolesGuard)
@@ -102,8 +111,8 @@ export class UsersController {
   @Patch('/redeem-gift/:id')
   @Roles(ERoleType.CLIENT)
   @UseGuards(UserGuard, RolesGuard)
-  async redeemGift(@Param('id') id: number, @AuthUser() user) {
-    await this.usersService.redeemGift(id, user);
+  async redeemGift(@Param('id') id: number, @AuthUser() user, @Body() quantityData: QuantityRedeemDto) {
+    await this.usersService.redeemGift(id, user, quantityData);
     return { message: USER.REDEEM_GIFT_SUCCESSFULLY };
   }
 }

@@ -27,6 +27,8 @@ import { CreateUserDto } from '../users/dto/create-user.dto';
 import { UpdateUserDto } from '../users/dto/update-user.dto';
 import { IToken } from 'src/interfaces';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { UpdateGiftDto } from './dto/update-gift.dto';
+import { Store } from 'src/database';
 
 @Controller('stores')
 export class StoresController {
@@ -158,7 +160,31 @@ export class StoresController {
     return { message: GIFT.CREATE_GIFT_SUCCESSFULLY, data };
   }
 
-  @Get('/gifts/all')
+  @Patch('/gifts/:id')
+  @Roles(ERoleType.STORE)
+  @UseGuards(UserGuard, RolesGuard)
+  async updateGift(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateGiftDto, @AuthUser() store: Store) {
+    const data = await this.storesService.updateGift(id, body, store);
+    return { message: GIFT.UPDATE_GIFT_SUCCESSFULLY, data };
+  }
+
+  @Delete('/gifts/:id')
+  @Roles(ERoleType.STORE)
+  @UseGuards(UserGuard, RolesGuard)
+  async deleteGift(@Param('id', ParseIntPipe) id: number, @AuthUser() store: Store) {
+    await this.storesService.removeGift(id, store);
+    return { message: GIFT.DELETE_GIFT_SUCCESSFULLY };
+  }
+
+  @Get('/gifts/:id')
+  @Roles(ERoleType.STORE)
+  @UseGuards(UserGuard, RolesGuard)
+  async getGift(@Param('id', ParseIntPipe) id: number, @AuthUser() store: Store) {
+    const data = await this.storesService.findOneGift(id, store);
+    return { message: GIFT.GET_GIFT_SUCCESSFULLY, data };
+  }
+
+  @Get('/store/gifts/all')
   @Roles(ERoleType.STORE)
   @UseGuards(UserGuard, RolesGuard)
   async getAllGifts(@AuthUser() store) {

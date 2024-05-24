@@ -9,7 +9,7 @@ import { RanksModule } from '../ranks';
 import { GiftsModule } from '../gifts/gifts.module';
 import { RefreshTokensModule } from '../refresh_tokens';
 import { StoreUsersModule } from '../store_users';
-
+import { UserRewardsModule } from '../user_rewards';
 @Module({
   imports: [
     SequelizeModule.forFeature([User]),
@@ -17,7 +17,8 @@ import { StoreUsersModule } from '../store_users';
     RanksModule,
     GiftsModule,
     RefreshTokensModule,
-    StoreUsersModule
+    StoreUsersModule,
+    UserRewardsModule
   ],
   controllers: [UsersController],
   providers: [UsersService, UsersRepository],

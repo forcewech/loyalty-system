@@ -1,6 +1,7 @@
 import {
   AutoIncrement,
   BelongsTo,
+  BelongsToMany,
   Column,
   DataType,
   ForeignKey,
@@ -16,6 +17,7 @@ import { Rank } from './ranks.model';
 import { UserReward } from './user_rewards.model';
 import { RefreshToken } from './refresh_tokens.model';
 import { StoreUser } from './store_users.model';
+import { Gift } from './gifts.model';
 
 @Table({
   tableName: 'users',
@@ -74,15 +76,12 @@ export class User extends Model {
   @BelongsTo(() => Rank)
   rank: Rank;
 
+  @HasMany(() => UserReward)
+  userRewards: UserReward[];
+
   @HasMany(() => OrderDetail)
   orderDetails: OrderDetail[];
 
-  @HasMany(() => StoreUser)
-  storeUsers: StoreUser[];
-
   @HasMany(() => RefreshToken)
   refreshTokens: RefreshToken[];
-
-  @HasMany(() => UserReward)
-  userRewards: UserReward[];
 }

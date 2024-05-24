@@ -17,5 +17,6 @@ export const USER = {
   GET_USER_SUCCESSFULLY: 'Get user successfully',
   REDEEM_GIFT_SUCCESSFULLY: 'Redeem gift successfully',
   THIS_PHONE_HAS_NOT_REGISTERED: 'This phone has not registered',
-  PAYMENT_SUCCESS: 'Payment success'
+  PAYMENT_SUCCESS: 'Payment success',
+  GET_HISTORY_REDEEM_GIFT_SUCCESSFULLY: 'Get history redeem gift successfully'
 };

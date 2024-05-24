@@ -1,5 +1,5 @@
-import { AutoIncrement, Column, HasMany, Model, PrimaryKey, Table } from 'sequelize-typescript';
-import { ProductStore } from './product_stores.model';
+import { AutoIncrement, BelongsToMany, Column, HasMany, Model, PrimaryKey, Table } from 'sequelize-typescript';
+import { User } from './users.model';
 import { UserReward } from './user_rewards.model';
 
 @Table({
@@ -34,6 +34,6 @@ export class Gift extends Model {
   @HasMany(() => UserReward)
   userRewards: UserReward[];
 
-  @HasMany(() => ProductStore)
-  productStores: ProductStore[];
+  @BelongsToMany(() => User, () => UserReward)
+  users!: User[];
 }

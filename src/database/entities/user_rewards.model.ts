@@ -20,6 +20,12 @@ export class UserReward extends Model {
   @Column
   productId: number;
 
+  @Column
+  quantity: number;
+
+  @Column
+  redeemDate: Date;
+
   @BelongsTo(() => User)
   user: User;
 
