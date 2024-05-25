@@ -19,9 +19,9 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { OtpDto } from './dto/otp.dto';
 import { PhoneDto } from './dto/phone.dto';
+import { RedeemToCartDto } from './dto/redeem-to-cart.dts';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
-import { QuantityRedeemDto } from './dto/quantity-redeem.dts';
 
 @Controller('users')
 export class UsersController {
@@ -111,8 +111,16 @@ export class UsersController {
   @Patch('/redeem-gift/:id')
   @Roles(ERoleType.CLIENT)
   @UseGuards(UserGuard, RolesGuard)
-  async redeemGift(@Param('id') id: number, @AuthUser() user, @Body() quantityData: QuantityRedeemDto) {
-    await this.usersService.redeemGift(id, user, quantityData);
+  async redeemGift(@Param('id') id: number, @AuthUser() user, @Body() data: RedeemToCartDto) {
+    await this.usersService.redeemGift(id, user, data);
+    return { message: USER.ADD_GIFT_INTO_CART_SUCCESSFULLY };
+  }
+
+  @Patch('/payment/get-payment')
+  @Roles(ERoleType.CLIENT)
+  @UseGuards(UserGuard, RolesGuard)
+  async getPayment(@AuthUser() user) {
+    await this.usersService.getPayment(user);
     return { message: USER.REDEEM_GIFT_SUCCESSFULLY };
   }
 }

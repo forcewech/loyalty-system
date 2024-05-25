@@ -1,4 +1,13 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsPhoneNumber, IsString, IsStrongPassword, MaxLength } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsPhoneNumber,
+  IsString,
+  IsStrongPassword,
+  MaxLength
+} from 'class-validator';
 import { EGender } from 'src/constants';
 
 export class CreateUserDto {
@@ -34,5 +43,6 @@ export class CreateUserDto {
   phone: string;
 
   @IsString()
+  @IsOptional()
   storeId: string;
 }

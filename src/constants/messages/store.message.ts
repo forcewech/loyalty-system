@@ -21,5 +21,6 @@ export const STORE = {
   UPDATE_STORE_SUCCESSFULLY: 'Update store successfully',
   DELETE_STORE_SUCCESSFULLY: 'Delete store successfully',
   GET_ALL_STORE_SUCCESSFULLY: 'Get all store successfully',
-  GET_STORE_SUCCESSFULLY: 'Get store successfully'
+  GET_STORE_SUCCESSFULLY: 'Get store successfully',
+  GIFT_IS_NOT_EXSIT_IN_STORE: 'Gift is not exsit in store'
 };

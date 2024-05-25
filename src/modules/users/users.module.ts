@@ -1,15 +1,17 @@
 import { Module } from '@nestjs/common';
-import { UsersService } from './users.service';
-import { UsersController } from './users.controller';
-import { User } from 'src/database';
 import { SequelizeModule } from '@nestjs/sequelize';
-import { UsersRepository } from './users.repository';
-import { TwilioModule } from '../twilio/twilio.module';
-import { RanksModule } from '../ranks';
+import { User } from 'src/database';
 import { GiftsModule } from '../gifts/gifts.module';
+import { OrderRedeemDetailsModule } from '../order_redeem_details';
+import { OrderRedeemsModule } from '../order_redeems';
+import { RanksModule } from '../ranks';
 import { RefreshTokensModule } from '../refresh_tokens';
 import { StoreUsersModule } from '../store_users';
-import { UserRewardsModule } from '../user_rewards';
+import { TwilioModule } from '../twilio/twilio.module';
+import { UsersController } from './users.controller';
+import { UsersRepository } from './users.repository';
+import { UsersService } from './users.service';
+import { ProductStoresModule } from '../product_stores';
 @Module({
   imports: [
     SequelizeModule.forFeature([User]),
@@ -18,7 +20,9 @@ import { UserRewardsModule } from '../user_rewards';
     GiftsModule,
     RefreshTokensModule,
     StoreUsersModule,
-    UserRewardsModule
+    OrderRedeemDetailsModule,
+    OrderRedeemsModule,
+    ProductStoresModule
   ],
   controllers: [UsersController],
   providers: [UsersService, UsersRepository],

@@ -1,6 +1,4 @@
-import { AutoIncrement, BelongsToMany, Column, HasMany, Model, PrimaryKey, Table } from 'sequelize-typescript';
-import { User } from './users.model';
-import { UserReward } from './user_rewards.model';
+import { AutoIncrement, Column, Model, PrimaryKey, Table } from 'sequelize-typescript';
 
 @Table({
   tableName: 'gifts',
@@ -30,10 +28,4 @@ export class Gift extends Model {
 
   @Column
   image: string;
-
-  @HasMany(() => UserReward)
-  userRewards: UserReward[];
-
-  @BelongsToMany(() => User, () => UserReward)
-  users!: User[];
 }

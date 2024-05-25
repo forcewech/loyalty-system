@@ -29,6 +29,7 @@ import { IToken } from 'src/interfaces';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateGiftDto } from './dto/update-gift.dto';
 import { Store } from 'src/database';
+import { CreateGiftDto } from './dto/create-gift.dto';
 
 @Controller('stores')
 export class StoresController {
@@ -155,7 +156,11 @@ export class StoresController {
   @Roles(ERoleType.STORE)
   @UseGuards(UserGuard, RolesGuard)
   @UseInterceptors(FileInterceptor('image'))
-  async createGift(@Body() createGiftDto: any, @UploadedFile() image: Express.Multer.File, @AuthUser() store) {
+  async createGift(
+    @Body() createGiftDto: CreateGiftDto,
+    @UploadedFile() image: Express.Multer.File,
+    @AuthUser() store
+  ) {
     const data = await this.storesService.createGift(createGiftDto, image, store);
     return { message: GIFT.CREATE_GIFT_SUCCESSFULLY, data };
   }

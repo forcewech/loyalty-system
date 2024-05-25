@@ -11,9 +11,11 @@ import {
   FIXED_POINT_SILVER,
   RATE_POINT_BRONZE,
   RATE_POINT_GOLD,
-  RATE_POINT_SILVER
+  RATE_POINT_SILVER,
+  STORE
 } from 'src/constants';
 import { RanksRepository } from 'src/modules/ranks';
+import { ErrorHelper } from 'src/utils';
 
 @Injectable()
 export class OrderDetailsService {
@@ -32,6 +34,9 @@ export class OrderDetailsService {
         id: storeId
       }
     });
+    if (!storeData) {
+      ErrorHelper.BadRequestException(STORE.STORE_NOT_FOUND);
+    }
     const userData = await this.usersRepository.findOne({
       where: {
         id: user.id

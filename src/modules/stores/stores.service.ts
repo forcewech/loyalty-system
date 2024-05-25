@@ -394,7 +394,8 @@ export class StoresService {
     const store = await this.storesRepository.create({
       ...body,
       password: hashPassword,
-      status: EStoreStatus.ACTIVE
+      status: EStoreStatus.ACTIVE,
+      isCodeUsed: true
     });
     const storeData = store.get({ plain: true });
     delete storeData.password;
@@ -500,6 +501,17 @@ export class StoresService {
   //Manage gifts
   async createGift(body: CreateGiftDto, image: Express.Multer.File, store: Store): Promise<Gift> {
     const payload = body;
+    const isGiftExist = await this.giftsRepository.findOne({
+      where: {
+        name: payload.name
+      }
+    });
+    if (isGiftExist) {
+      ErrorHelper.BadRequestException(GIFT.GIFT_IS_EXSIT);
+    }
+    if (new Date(payload.expirationDate) < new Date()) {
+      ErrorHelper.BadRequestException(GIFT.DATE_IS_NOT_IN_THE_PAST);
+    }
     const imageUrl = await this.uploadsService.uploadImage(image);
     const { url } = imageUrl;
     const gift = await this.giftsRepository.create({ ...payload, image: url });

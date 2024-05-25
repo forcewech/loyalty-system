@@ -1,24 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { token } from 'src/configs';
-import { AUTH, EUserStatus, EXPIRE_TIME_OTP, USER } from 'src/constants';
-import { GIFT } from 'src/constants/messages/gift.message';
-import { Gift, User, UserReward } from 'src/database';
+import { client } from 'src/configs/connectRedis';
+import { AUTH, EGiftStatus, EUserStatus, EXPIRE_TIME_OTP, GIFT, STORE, USER } from 'src/constants';
+import { Gift, OrderRedeemDetail, User } from 'src/database';
 import { IPaginationRes, IToken } from 'src/interfaces';
 import { CommonHelper, EncryptHelper, ErrorHelper, TokenHelper } from 'src/utils';
 import { GiftsRepository } from '../gifts/gifts.repository';
+import { OrderRedeemDetailsRepository } from '../order_redeem_details';
+import { OrderRedeemsRepository } from '../order_redeems';
+import { ProductStoresRepository } from '../product_stores';
 import { RanksRepository } from '../ranks';
+import { RefreshTokensRepository } from '../refresh_tokens';
+import { StoreUsersRepository } from '../store_users';
 import { TwilioService } from '../twilio/twilio.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { OtpDto } from './dto/otp.dto';
 import { PhoneDto } from './dto/phone.dto';
+import { RedeemToCartDto } from './dto/redeem-to-cart.dts';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersRepository } from './users.repository';
-import { client } from 'src/configs/connectRedis';
-import { RefreshTokensRepository } from '../refresh_tokens';
-import { StoreUsersRepository } from '../store_users';
-import { UserRewardsRepository } from '../user_rewards';
-import { QuantityRedeemDto } from './dto/quantity-redeem.dts';
 
 @Injectable()
 export class UsersService {
@@ -29,7 +30,9 @@ export class UsersService {
     private giftsRepository: GiftsRepository,
     private refreshTokensRepository: RefreshTokensRepository,
     private storeUsersRepository: StoreUsersRepository,
-    private userRewardsRepository: UserRewardsRepository
+    private orderRedeemDetailsRepository: OrderRedeemDetailsRepository,
+    private orderRedeemsRepository: OrderRedeemsRepository,
+    private productStoresRepository: ProductStoresRepository
   ) {}
 
   async register(body: CreateUserDto): Promise<User> {
@@ -190,6 +193,14 @@ export class UsersService {
     if (isPhoneExists) {
       ErrorHelper.BadRequestException(USER.PHONE_IS_EXIST);
     }
+    const isEmailExists = await this.usersRepository.findOne({
+      where: {
+        email: body.email
+      }
+    });
+    if (isEmailExists) {
+      ErrorHelper.BadRequestException(USER.EMAIL_IS_EXIST);
+    }
     const user = await this.usersRepository.create({
       ...body,
       password: hashPassword,
@@ -291,51 +302,107 @@ export class UsersService {
     return user.get({ plain: true });
   }
 
-  async redeemGift(productId: number, user: User, quantityData: QuantityRedeemDto): Promise<void> {
-    const quantityRedeem = quantityData.quantity;
+  async redeemGift(productId: number, user: User, data: RedeemToCartDto): Promise<void> {
+    const quantityRedeem = data.quantity;
+    const isGiftInStore = await this.productStoresRepository.findOne({
+      where: {
+        productId,
+        storeId: data.storeId
+      }
+    });
+    if (!isGiftInStore) {
+      ErrorHelper.BadRequestException(STORE.GIFT_IS_NOT_EXSIT_IN_STORE);
+    }
     const giftData = await this.giftsRepository.findOne({
       where: {
         id: productId
       }
     });
+    if (!giftData) {
+      ErrorHelper.BadRequestException(GIFT.GIFT_NOT_FOUND);
+    }
     const dataUser = await this.usersRepository.findOne({
       where: {
         id: user.id
       }
     });
-    const totalPoints = +giftData.redemptionPoints * +quantityRedeem;
-    if (+dataUser.rewardPoints >= totalPoints) {
-      if (+giftData.quantity > +quantityRedeem) {
-        const redeemGift = +dataUser.rewardPoints - totalPoints;
-        dataUser.rewardPoints = redeemGift;
-        giftData.quantity -= +quantityRedeem;
-      } else {
-        ErrorHelper.BadRequestException(GIFT.NOT_ENOUGH_QUANTITY);
-      }
-    } else {
+    const totalPrices = +giftData.redemptionPoints * quantityRedeem;
+    if (quantityRedeem > giftData.quantity) {
+      ErrorHelper.BadRequestException(GIFT.NOT_ENOUGH_QUANTITY);
+    }
+    if (totalPrices > dataUser.rewardPoints) {
       ErrorHelper.BadRequestException(USER.NOT_ENOUGH_POINT);
     }
-    await this.userRewardsRepository.create({
-      userId: dataUser.id,
+    if (giftData.expirationDate < new Date()) {
+      ErrorHelper.BadRequestException(GIFT.GIFT_HAS_RAN_OUT_OF_TIME_TO_REDEEM);
+    }
+    await this.orderRedeemDetailsRepository.create({
+      userId: user.id,
       rankId: dataUser.rankId,
       productId,
       quantity: quantityRedeem,
+      totalPrices
+    });
+  }
+
+  async getPayment(user: User): Promise<void> {
+    let totalPoints = 0;
+    const userData = await this.usersRepository.findOne({
+      where: {
+        id: user.id
+      }
+    });
+    const cart = await this.orderRedeemDetailsRepository.find({ raw: true });
+    const order = await this.orderRedeemsRepository.create({
+      userId: user.id,
+      rankId: userData.rankId,
       redeemDate: new Date()
     });
-    await giftData.save();
-    await dataUser.save();
+    cart.map(async (item) => {
+      if (item.status === EGiftStatus.NOT_REDEEMED && item.userId === user.id) {
+        totalPoints += item.totalPrices;
+        await this.orderRedeemDetailsRepository.update(
+          { orderRedeemId: order.id, status: EGiftStatus.REDEEMED },
+          { where: { id: item.id } }
+        );
+        const gift = await this.giftsRepository.findOne({
+          where: {
+            id: item.productId
+          }
+        });
+        const newQuantity = gift.quantity - item.quantity;
+        await this.giftsRepository.update(
+          {
+            quantity: newQuantity
+          },
+          {
+            where: {
+              id: item.productId
+            }
+          }
+        );
+      }
+    });
+    userData['rewardPoints'] = userData.rewardPoints - totalPoints;
+    await userData.save();
   }
 
   async getHistoryRedeem(user: User) {
-    return await this.userRewardsRepository.find({
+    return await this.orderRedeemsRepository.find({
       where: {
         userId: user.id
       },
-      attributes: { exclude: ['createdAt', 'updatedAt', 'rankId', 'userId', 'productId'] },
+      attributes: { exclude: ['createdAt', 'updatedAt'] },
       include: [
         {
-          model: Gift,
-          attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] }
+          model: OrderRedeemDetail,
+          attributes: { exclude: ['createdAt', 'updatedAt', 'userId', 'rankId', 'productId'] },
+          include: [
+            {
+              model: Gift,
+              attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] }
+            }
+          ]
         }
       ]
     });

@@ -1,7 +1,10 @@
 import { IsNumber, IsPositive } from 'class-validator';
 
-export class QuantityRedeemDto {
+export class RedeemToCartDto {
   @IsNumber()
   @IsPositive()
   quantity: number;
+
+  @IsNumber()
+  storeId: number;
 }

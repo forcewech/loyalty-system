@@ -3,6 +3,12 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
+    // Logic để xóa bảng user_rewards
+    await queryInterface.dropTable('user_rewards');
+  },
+
+  async down(queryInterface, Sequelize) {
+    // Logic để tạo lại bảng user_rewards
     await queryInterface.createTable('user_rewards', {
       id: {
         allowNull: false,
@@ -37,9 +43,5 @@ module.exports = {
         type: Sequelize.DATE
       }
     });
-  },
-
-  async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('user_rewards');
   }
 };
