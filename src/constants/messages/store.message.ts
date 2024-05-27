@@ -22,5 +22,9 @@ export const STORE = {
   DELETE_STORE_SUCCESSFULLY: 'Delete store successfully',
   GET_ALL_STORE_SUCCESSFULLY: 'Get all store successfully',
   GET_STORE_SUCCESSFULLY: 'Get store successfully',
-  GIFT_IS_NOT_EXSIT_IN_STORE: 'Gift is not exsit in store'
+  GIFT_IS_NOT_EXSIT_IN_STORE: 'Gift is not exsit in store',
+  SEND_FORGOT_PASSWORD_TOKEN_SUCCESS: 'Send forgot password token success',
+  RESET_PASSWORD_SUCCESS: 'Reset password success',
+  FORGOT_PASSWORD_TOKEN_NOT_FOUND: 'Forgot password token not found',
+  TOKEN_HAS_EXPIRED: 'Token has expired'
 };

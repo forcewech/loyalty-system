@@ -5,7 +5,7 @@ import { token } from 'src/configs';
 import { client } from 'src/configs/connectRedis';
 import { AUTH, EStoreStatus, EUserStatus, EXPIRE_TIME_OTP, GIFT, STORE, USER } from 'src/constants';
 import { Gift, Store, User } from 'src/database';
-import { IPaginationRes, IToken } from 'src/interfaces';
+import { IPaginationRes, IToken, ITokenPayload } from 'src/interfaces';
 import { CommonHelper, EncryptHelper, ErrorHelper, TokenHelper } from 'src/utils';
 import { GiftsRepository } from '../gifts/gifts.repository';
 import { ProductStoresRepository } from '../product_stores';
@@ -24,6 +24,7 @@ import { OtpDto } from './dto/otp.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { StoresRepository } from './stores.repository';
 import { UpdateGiftDto } from './dto/update-gift.dto';
+import { PasswordDto } from './dto/password.dto';
 
 @Injectable()
 export class StoresService {
@@ -627,5 +628,54 @@ export class StoresService {
         }
       ]
     });
+  }
+
+  async forgotPassword(body: EmailDto): Promise<void> {
+    const storeData = await this.storesRepository.findOne({
+      where: {
+        email: body.email
+      }
+    });
+    if (!storeData) {
+      ErrorHelper.BadRequestException(STORE.THIS_EMAIL_HAS_NOT_REGISTERED);
+    }
+    const tokenData = TokenHelper.generate({ email: body.email }, token.secretKey, token.expireTime);
+    await this.sendMail.add(
+      'register',
+      {
+        to: body.email,
+        otp: `http://localhost:3000/reset-password/reset?forgot_password_token=${tokenData.token}`
+      },
+      {
+        removeOnComplete: true
+      }
+    );
+    storeData['forgotPasswordToken'] = tokenData.token;
+    await storeData.save();
+  }
+
+  async resetPassword(forgotToken: string, body: PasswordDto): Promise<void> {
+    const data = TokenHelper.verify(forgotToken, token.secretKey) as ITokenPayload;
+    const store = await this.storesRepository.findOne({
+      where: {
+        forgotPasswordToken: forgotToken
+      }
+    });
+    if (!store) {
+      ErrorHelper.BadRequestException(STORE.FORGOT_PASSWORD_TOKEN_NOT_FOUND);
+    }
+    if (data) {
+      await this.storesRepository.update(
+        {
+          password: await EncryptHelper.hash(body.password),
+          forgotPasswordToken: ''
+        },
+        {
+          where: {
+            email: data.email
+          }
+        }
+      );
+    }
   }
 }

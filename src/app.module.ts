@@ -9,9 +9,8 @@ import { AppService } from './app.service';
 import { emailSender, redis } from './configs';
 import { PostgresqlModule } from './database/postgresql.module';
 import { AdminModule, StoresModule, UsersModule } from './modules';
-import { GiftsModule } from './modules/gifts/gifts.module';
-import { RanksModule } from './modules/ranks';
 import { OrderDetailsModule } from './modules/order_details/order_details.module';
+import { RanksModule } from './modules/ranks';
 
 @Module({
   imports: [

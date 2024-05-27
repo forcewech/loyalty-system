@@ -3,7 +3,7 @@ import { token } from 'src/configs';
 import { client } from 'src/configs/connectRedis';
 import { AUTH, EGiftStatus, EUserStatus, EXPIRE_TIME_OTP, GIFT, STORE, USER } from 'src/constants';
 import { Gift, OrderRedeemDetail, User } from 'src/database';
-import { IPaginationRes, IToken } from 'src/interfaces';
+import { IPaginationRes, IToken, ITokenPayload } from 'src/interfaces';
 import { CommonHelper, EncryptHelper, ErrorHelper, TokenHelper } from 'src/utils';
 import { GiftsRepository } from '../gifts/gifts.repository';
 import { OrderRedeemDetailsRepository } from '../order_redeem_details';
@@ -345,6 +345,26 @@ export class UsersService {
     });
   }
 
+  async removeGift(id: number, user: User): Promise<void> {
+    const gift = await this.orderRedeemDetailsRepository.findOne({
+      where: {
+        id
+      }
+    });
+    if (!gift) {
+      ErrorHelper.BadRequestException(GIFT.GIFT_NOT_IN_CART);
+    }
+    if (gift.status === EGiftStatus.NOT_REDEEMED && gift.userId === user.id) {
+      await this.orderRedeemDetailsRepository.delete({
+        where: {
+          id
+        }
+      });
+    } else {
+      ErrorHelper.BadRequestException(GIFT.GIFT_NOT_IN_CART);
+    }
+  }
+
   async getPayment(user: User): Promise<void> {
     let totalPoints = 0;
     const userData = await this.usersRepository.findOne({
@@ -358,31 +378,29 @@ export class UsersService {
       rankId: userData.rankId,
       redeemDate: new Date()
     });
-    cart.map(async (item) => {
+    for (const item of cart) {
       if (item.status === EGiftStatus.NOT_REDEEMED && item.userId === user.id) {
         totalPoints += item.totalPrices;
+
+        // Cập nhật chi tiết đổi thưởng
         await this.orderRedeemDetailsRepository.update(
           { orderRedeemId: order.id, status: EGiftStatus.REDEEMED },
           { where: { id: item.id } }
         );
+
+        // Lấy thông tin quà tặng
         const gift = await this.giftsRepository.findOne({
           where: {
             id: item.productId
           }
         });
-        const newQuantity = gift.quantity - item.quantity;
-        await this.giftsRepository.update(
-          {
-            quantity: newQuantity
-          },
-          {
-            where: {
-              id: item.productId
-            }
-          }
-        );
+
+        // Cập nhật số lượng quà tặng
+        gift['quantity'] -= item.quantity;
+        await gift.save();
       }
-    });
+    }
+    // Cập nhật điểm thưởng của người dùng
     userData['rewardPoints'] = userData.rewardPoints - totalPoints;
     await userData.save();
   }
@@ -406,5 +424,36 @@ export class UsersService {
         }
       ]
     });
+  }
+
+  async refreshToken(refreshToken: string): Promise<IToken> {
+    const rfToken = await this.refreshTokensRepository.findOne({
+      where: {
+        token: refreshToken
+      }
+    });
+    if (!rfToken) {
+      ErrorHelper.BadRequestException(AUTH.REFRESH_TOKEN_NOT_EXIST);
+    }
+    await this.refreshTokensRepository.delete({
+      where: {
+        token: refreshToken
+      }
+    });
+    const data = TokenHelper.verify(refreshToken, token.rfSecretKey) as ITokenPayload;
+    const tokenData = this.generateToken({ id: data.id, role: data.role });
+    const key = `user_${tokenData.accessToken}`;
+    const expireTime = parseInt(token.expireTime.slice(0, -1)) * 60;
+    await client.set(key, tokenData.accessToken, {
+      EX: expireTime
+    });
+    await this.refreshTokensRepository.create({
+      token: tokenData.refreshToken,
+      userId: data.id,
+      expiryDate: tokenData.expires
+    });
+    return {
+      ...tokenData
+    };
   }
 }

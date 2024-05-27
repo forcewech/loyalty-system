@@ -58,6 +58,11 @@ export class Store extends Model {
   role: string;
 
   @Column({
+    defaultValue: ''
+  })
+  forgotPasswordToken: string;
+
+  @Column({
     defaultValue: 'fixed'
   })
   typePoint: string;

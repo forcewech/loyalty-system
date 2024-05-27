@@ -3,3 +3,9 @@ export interface IToken {
   expires: number;
   refreshToken: string;
 }
+
+export interface ITokenPayload {
+  email: string;
+  id: string;
+  role: string;
+}

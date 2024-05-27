@@ -30,6 +30,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateGiftDto } from './dto/update-gift.dto';
 import { Store } from 'src/database';
 import { CreateGiftDto } from './dto/create-gift.dto';
+import { PasswordDto } from './dto/password.dto';
 
 @Controller('stores')
 export class StoresController {
@@ -195,5 +196,17 @@ export class StoresController {
   async getAllGifts(@AuthUser() store) {
     const data = await this.storesService.findAllGifts(store);
     return { message: GIFT.GET_ALL_GIFT_IN_STORE_SUCCESSFULLY, data };
+  }
+
+  @Patch('/forgot-password/send-token')
+  async forgotPassword(@Body() body: EmailDto) {
+    await this.storesService.forgotPassword(body);
+    return { message: STORE.SEND_FORGOT_PASSWORD_TOKEN_SUCCESS };
+  }
+
+  @Patch('/reset-password/reset')
+  async resetPassword(@Query('forgot_password_token') forgotToken: string, @Body() body: PasswordDto) {
+    await this.storesService.resetPassword(forgotToken, body);
+    return { message: STORE.RESET_PASSWORD_SUCCESS };
   }
 }

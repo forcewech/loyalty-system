@@ -20,5 +20,6 @@ export const USER = {
   ADD_GIFT_INTO_CART_SUCCESSFULLY: 'Add gift into cart successfully',
   THIS_PHONE_HAS_NOT_REGISTERED: 'This phone has not registered',
   PAYMENT_SUCCESS: 'Payment success',
-  GET_HISTORY_REDEEM_GIFT_SUCCESSFULLY: 'Get history redeem gift successfully'
+  GET_HISTORY_REDEEM_GIFT_SUCCESSFULLY: 'Get history redeem gift successfully',
+  REMOVE_GIFT_IN_CART_SUCCESSFULLY: 'Remove gift in cart successfully'
 };

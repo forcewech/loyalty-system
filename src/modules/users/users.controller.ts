@@ -48,6 +48,12 @@ export class UsersController {
     return { message: AUTH.LOGOUT_SUCCESSFULLY };
   }
 
+  @Post('/refresh-token')
+  async refreshToken(@Body() body: IToken) {
+    const data = await this.usersService.refreshToken(body.refreshToken);
+    return { message: AUTH.GET_ACCESS_TOKEN_AND_REFRESH_TOKEN_SUCCESS, data };
+  }
+
   @Patch('/verify')
   async verify(@Body() otpDto: OtpDto) {
     await this.usersService.verifyOtp(otpDto);
@@ -122,5 +128,13 @@ export class UsersController {
   async getPayment(@AuthUser() user) {
     await this.usersService.getPayment(user);
     return { message: USER.REDEEM_GIFT_SUCCESSFULLY };
+  }
+
+  @Delete('/redeem-gift/:id')
+  @Roles(ERoleType.CLIENT)
+  @UseGuards(UserGuard, RolesGuard)
+  async deleteRedeemGift(@Param('id', ParseIntPipe) id: number, @AuthUser() user) {
+    await this.usersService.removeGift(id, user);
+    return { message: USER.REMOVE_GIFT_IN_CART_SUCCESSFULLY };
   }
 }
