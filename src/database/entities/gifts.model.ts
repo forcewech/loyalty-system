@@ -1,10 +1,9 @@
-import { AutoIncrement, Column, HasMany, Model, PrimaryKey, Table } from 'sequelize-typescript';
-import { ProductStore } from './product_stores.model';
-import { UserReward } from './user_rewards.model';
+import { AutoIncrement, Column, Model, PrimaryKey, Table } from 'sequelize-typescript';
 
 @Table({
   tableName: 'gifts',
-  underscored: true
+  underscored: true,
+  paranoid: true
 })
 export class Gift extends Model {
   @PrimaryKey
@@ -19,9 +18,6 @@ export class Gift extends Model {
   redemptionPoints: string;
 
   @Column
-  image: string;
-
-  @Column
   expirationDate: Date;
 
   @Column
@@ -30,9 +26,6 @@ export class Gift extends Model {
   @Column
   description: string;
 
-  @HasMany(() => UserReward)
-  userRewards: UserReward[];
-
-  @HasMany(() => ProductStore)
-  productStores: ProductStore[];
+  @Column
+  image: string;
 }

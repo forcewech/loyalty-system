@@ -1,4 +1,14 @@
-import { IsEmail, IsNotEmpty, IsNumber, IsPhoneNumber, IsString, IsStrongPassword, MaxLength } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsPhoneNumber,
+  IsString,
+  IsStrongPassword,
+  MaxLength
+} from 'class-validator';
+import { EGender } from 'src/constants';
 
 export class CreateUserDto {
   @IsString()
@@ -24,16 +34,15 @@ export class CreateUserDto {
   password: string;
 
   @IsString()
+  @IsEnum(EGender)
   gender: string;
 
+  @IsPhoneNumber()
   @IsString()
   @IsNotEmpty()
-  @IsPhoneNumber()
   phone: string;
 
-  @IsNumber()
-  rewardPoints: number;
-
-  @IsNumber()
-  reservePoints: number;
+  @IsString()
+  @IsOptional()
+  storeId: string;
 }

@@ -1,10 +1,10 @@
 import { AutoIncrement, Column, HasMany, Model, PrimaryKey, Table } from 'sequelize-typescript';
-import { StoreRank } from './store_ranks.model';
 import { User } from './users.model';
 
 @Table({
   tableName: 'ranks',
-  underscored: true
+  underscored: true,
+  paranoid: true
 })
 export class Rank extends Model {
   @PrimaryKey
@@ -17,7 +17,4 @@ export class Rank extends Model {
 
   @HasMany(() => User)
   users: User[];
-
-  @HasMany(() => StoreRank)
-  storeRanks: StoreRank[];
 }

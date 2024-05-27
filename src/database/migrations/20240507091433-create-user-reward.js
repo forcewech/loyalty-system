@@ -22,6 +22,12 @@ module.exports = {
         type: Sequelize.INTEGER,
         references: { model: 'gifts', key: 'id' }
       },
+      quantity: {
+        type: Sequelize.INTEGER
+      },
+      redeem_date: {
+        type: Sequelize.DATE
+      },
       created_at: {
         allowNull: false,
         type: Sequelize.DATE

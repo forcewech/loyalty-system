@@ -1,4 +1,4 @@
-import { AutoIncrement, Column, Model, PrimaryKey, Table } from 'sequelize-typescript';
+import { AutoIncrement, Column, Model, PrimaryKey, Table, Unique } from 'sequelize-typescript';
 
 @Table({
   tableName: 'admin',
@@ -10,6 +10,7 @@ export class Admin extends Model {
   @Column
   id: number;
 
+  @Unique
   @Column
   email: string;
 
@@ -18,4 +19,9 @@ export class Admin extends Model {
 
   @Column
   fullName: string;
+
+  @Column({
+    defaultValue: 'admin'
+  })
+  role: string;
 }
