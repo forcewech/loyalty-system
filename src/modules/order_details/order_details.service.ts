@@ -59,24 +59,24 @@ export class OrderDetailsService {
     });
     if (storeData.typePoint === ETypePoint.FIXED) {
       if (rankData.name === ETypeRank.BRONZE) {
-        totalPoint = (FIXED_POINT_BRONZE * totalMoney) / 100;
+        totalPoint = (FIXED_POINT_BRONZE * totalMoney) / 100000;
         createOrderDetailDto['totalPoint'] = totalPoint;
       } else if (rankData.name === ETypeRank.SILVER) {
-        totalPoint = (FIXED_POINT_SILVER * totalMoney) / 100;
+        totalPoint = (FIXED_POINT_SILVER * totalMoney) / 100000;
         createOrderDetailDto['totalPoint'] = totalPoint;
       } else {
-        totalPoint = (FIXED_POINT_GOLD * totalMoney) / 100;
+        totalPoint = (FIXED_POINT_GOLD * totalMoney) / 100000;
         createOrderDetailDto['totalPoint'] = totalPoint;
       }
     } else {
       if (rankData.name === ETypeRank.BRONZE) {
-        totalPoint = Math.min((totalMoney * (totalMoney * RATE_POINT_BRONZE)) / 100, (5 * totalMoney) / 100);
+        totalPoint = Math.min((totalMoney * (totalMoney * RATE_POINT_BRONZE)) / 100000, (5 * totalMoney) / 100000);
         createOrderDetailDto['totalPoint'] = totalPoint;
       } else if (rankData.name === ETypeRank.SILVER) {
-        totalPoint = Math.min((totalMoney * (totalMoney * RATE_POINT_SILVER)) / 100, (10 * totalMoney) / 100);
+        totalPoint = Math.min((totalMoney * (totalMoney * RATE_POINT_SILVER)) / 100000, (10 * totalMoney) / 100000);
         createOrderDetailDto['totalPoint'] = totalPoint;
       } else {
-        totalPoint = Math.min((totalMoney * (totalMoney * RATE_POINT_GOLD)) / 100, (20 * totalMoney) / 100);
+        totalPoint = Math.min((totalMoney * (totalMoney * RATE_POINT_GOLD)) / 100000, (20 * totalMoney) / 100000);
         createOrderDetailDto['totalPoint'] = totalPoint;
       }
     }

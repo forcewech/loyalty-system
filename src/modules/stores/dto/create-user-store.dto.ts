@@ -1,7 +1,7 @@
 import { IsEmail, IsEnum, IsNotEmpty, IsPhoneNumber, IsString, IsStrongPassword, MaxLength } from 'class-validator';
 import { EGender } from 'src/constants';
 
-export class CreateUserDto {
+export class CreateUserStoreDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
@@ -32,8 +32,4 @@ export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
   phone: string;
-
-  @IsString()
-  @IsNotEmpty()
-  storeId: string;
 }

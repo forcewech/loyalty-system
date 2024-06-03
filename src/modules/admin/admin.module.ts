@@ -5,9 +5,20 @@ import { AdminController } from './admin.controller';
 import { AdminRepository } from './admin.repository';
 import { AdminService } from './admin.service';
 import { RefreshTokensModule } from '../refresh_tokens';
+import { RanksModule } from '../ranks';
+import { UsersModule } from '../users';
+import { StoreUsersModule } from '../store_users';
+import { StoresModule } from '../stores';
 
 @Module({
-  imports: [SequelizeModule.forFeature([Admin]), RefreshTokensModule],
+  imports: [
+    SequelizeModule.forFeature([Admin]),
+    RefreshTokensModule,
+    RanksModule,
+    UsersModule,
+    StoreUsersModule,
+    StoresModule
+  ],
   controllers: [AdminController],
   providers: [AdminService, AdminRepository]
 })

@@ -15,8 +15,4 @@ export class StoreUser extends Model {
   @ForeignKey(() => User)
   @Column
   userId: number;
-
-  @ForeignKey(() => Rank)
-  @Column
-  rankId: number;
 }

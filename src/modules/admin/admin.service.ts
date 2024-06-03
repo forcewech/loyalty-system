@@ -1,20 +1,30 @@
 import { Injectable } from '@nestjs/common';
 import { token } from 'src/configs';
 import { client } from 'src/configs/connectRedis';
-import { ADMIN, AUTH } from 'src/constants';
-import { IToken } from 'src/interfaces';
+import { ADMIN, AUTH, EUserStatus, STORE, USER } from 'src/constants';
+import { IPaginationRes, IToken } from 'src/interfaces';
 import { EncryptHelper, ErrorHelper, TokenHelper } from 'src/utils';
 import { RefreshTokensRepository } from '../refresh_tokens';
 import { AdminRepository } from './admin.repository';
 import { LoginAdminDto } from './dto/login-admin.dtos';
 import { CreateAdminDto } from './dto/create-admin.dtos';
-import { Admin } from 'src/database';
+import { Admin, User } from 'src/database';
+import { UsersRepository } from '../users';
+import { StoreUsersRepository } from '../store_users';
+import { RanksRepository } from '../ranks';
+import { CreateUserAdminDto } from './dto/create-user-admin.dto';
+import { UpdateUserAdminDto } from './dto/update-user-admin.dto';
+import { StoresRepository } from '../stores';
 
 @Injectable()
 export class AdminService {
   constructor(
     private adminRepository: AdminRepository,
-    private refreshTokensRepository: RefreshTokensRepository
+    private refreshTokensRepository: RefreshTokensRepository,
+    private usersRepository: UsersRepository,
+    private ranksRepository: RanksRepository,
+    private storeUsersRepository: StoreUsersRepository,
+    private storesRepository: StoresRepository
   ) {}
 
   private generateToken(payload: object): IToken {
@@ -82,5 +92,150 @@ export class AdminService {
     return {
       ...tokenData
     };
+  }
+
+  async createUser(body: CreateUserAdminDto): Promise<User> {
+    const hashPassword = await EncryptHelper.hash(body.password);
+    const rank = await this.ranksRepository.findOne({
+      where: {
+        name: 'bronze'
+      }
+    });
+    body['rankId'] = rank.id;
+    const isPhoneExists = await this.usersRepository.findOne({
+      where: {
+        phone: body.phone
+      }
+    });
+    if (isPhoneExists) {
+      ErrorHelper.BadRequestException(USER.PHONE_IS_EXIST);
+    }
+    const isEmailExists = await this.usersRepository.findOne({
+      where: {
+        email: body.email
+      }
+    });
+    if (isEmailExists) {
+      ErrorHelper.BadRequestException(USER.EMAIL_IS_EXIST);
+    }
+    const store = await this.storesRepository.findOne({
+      where: {
+        id: body.storeId
+      }
+    });
+    if (!store) {
+      ErrorHelper.BadRequestException(STORE.STORE_NOT_FOUND);
+    }
+    const user = await this.usersRepository.create({
+      ...body,
+      password: hashPassword,
+      status: EUserStatus.ACTIVE
+    });
+    await this.storeUsersRepository.create({
+      userId: user.id,
+      storeId: body.storeId,
+      rankId: user.rankId
+    });
+    const userData = user.get({ plain: true });
+    delete userData.password;
+    delete userData.otpCode;
+    delete userData.codeExpireTime;
+    delete userData.isCodeUsed;
+    delete userData.createdAt;
+    delete userData.updatedAt;
+    delete userData.deletedAt;
+    return {
+      ...userData
+    };
+  }
+
+  async updateUser(id: number, body: UpdateUserAdminDto): Promise<User> {
+    const user = await this.usersRepository.findOne({
+      where: {
+        id
+      }
+    });
+    if (!user) {
+      ErrorHelper.BadRequestException(USER.USER_NOT_FOUND);
+    }
+    const payload = body.password ? { ...body, password: await EncryptHelper.hash(body.password) } : body;
+    if (payload.phone) {
+      const isPhoneExists = await this.usersRepository.findOne({
+        where: {
+          phone: payload.phone
+        }
+      });
+      if (isPhoneExists && isPhoneExists.phone !== user.phone) {
+        ErrorHelper.BadRequestException(USER.PHONE_IS_EXIST);
+      }
+    }
+    if (payload.storeId) {
+      await this.storeUsersRepository.update(
+        {
+          storeId: body.storeId
+        },
+        {
+          where: {
+            userId: id
+          }
+        }
+      );
+    }
+    Object.assign(user, payload);
+    await user.save();
+    const userData = user.get({ plain: true });
+    delete userData.password;
+    delete userData.otpCode;
+    delete userData.codeExpireTime;
+    delete userData.isCodeUsed;
+    delete userData.createdAt;
+    delete userData.updatedAt;
+    delete userData.deletedAt;
+    return {
+      ...userData
+    };
+  }
+
+  async removeUser(id: number): Promise<void> {
+    const user = await this.usersRepository.findOne({
+      where: {
+        id
+      }
+    });
+    if (!user) {
+      ErrorHelper.BadRequestException(USER.USER_NOT_FOUND);
+    }
+    await this.usersRepository.delete({
+      where: {
+        id
+      }
+    });
+  }
+
+  async findAllUser(page, limit): Promise<IPaginationRes<User>> {
+    return await this.usersRepository.paginate(
+      {
+        attributes: {
+          exclude: ['password', 'otpCode', 'codeExpireTime', 'isCodeUsed', 'createdAt', 'updatedAt', 'deletedAt']
+        }
+      },
+      page,
+      limit
+    );
+  }
+
+  async findOneUser(id: number): Promise<User> {
+    const user = await this.usersRepository.findOne({
+      where: {
+        id
+      },
+      attributes: {
+        exclude: ['password', 'otpCode', 'codeExpireTime', 'isCodeUsed', 'createdAt', 'updatedAt', 'deletedAt']
+      }
+    });
+    if (!user) {
+      ErrorHelper.BadRequestException(USER.USER_NOT_FOUND);
+    }
+    return user.get({ plain: true });
   }
 }

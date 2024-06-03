@@ -9,16 +9,12 @@ import { GiftsRepository } from '../gifts/gifts.repository';
 import { OrderRedeemDetailsRepository } from '../order_redeem_details';
 import { OrderRedeemsRepository } from '../order_redeems';
 import { ProductStoresRepository } from '../product_stores';
-import { RanksRepository } from '../ranks';
 import { RefreshTokensRepository } from '../refresh_tokens';
-import { StoreUsersRepository } from '../store_users';
 import { TwilioService } from '../twilio/twilio.service';
-import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { OtpDto } from './dto/otp.dto';
 import { PhoneDto } from './dto/phone.dto';
 import { RedeemToCartDto } from './dto/redeem-to-cart.dts';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersRepository } from './users.repository';
 
 @Injectable()
@@ -26,52 +22,12 @@ export class UsersService {
   constructor(
     private usersRepository: UsersRepository,
     private twilioService: TwilioService,
-    private ranksRepository: RanksRepository,
     private giftsRepository: GiftsRepository,
     private refreshTokensRepository: RefreshTokensRepository,
-    private storeUsersRepository: StoreUsersRepository,
     private orderRedeemDetailsRepository: OrderRedeemDetailsRepository,
     private orderRedeemsRepository: OrderRedeemsRepository,
     private productStoresRepository: ProductStoresRepository
   ) {}
-
-  async register(body: CreateUserDto): Promise<User> {
-    const payload = body;
-    const otpCode = await CommonHelper.generateOTP();
-    const hashPassword = await EncryptHelper.hash(payload.password);
-    await this.twilioService.sendSms('+18777804236', `Your OTP code is: ${otpCode}`);
-    const rank = await this.ranksRepository.findOne({
-      where: {
-        name: 'bronze'
-      }
-    });
-    const isPhoneExists = await this.usersRepository.findOne({
-      where: {
-        phone: payload.phone
-      }
-    });
-    if (isPhoneExists) {
-      ErrorHelper.BadRequestException(USER.PHONE_IS_EXIST);
-    }
-    payload['rankId'] = rank.id;
-    const user = await this.usersRepository.create({
-      ...payload,
-      password: hashPassword,
-      otpCode: otpCode,
-      codeExpireTime: new Date().setMinutes(new Date().getMinutes() + EXPIRE_TIME_OTP)
-    });
-    const userData = user.get({ plain: true });
-    delete userData.password;
-    delete userData.otpCode;
-    delete userData.codeExpireTime;
-    delete userData.isCodeUsed;
-    delete userData.createdAt;
-    delete userData.updatedAt;
-    delete userData.deletedAt;
-    return {
-      ...userData
-    };
-  }
 
   async sendOtp(payload: PhoneDto): Promise<void> {
     const OTP = CommonHelper.generateOTP();
@@ -175,133 +131,6 @@ export class UsersService {
     });
     await client.del(`user_${accessToken}`);
   }
-
-  //User management
-  async create(body: CreateUserDto): Promise<User> {
-    const hashPassword = await EncryptHelper.hash(body.password);
-    const rank = await this.ranksRepository.findOne({
-      where: {
-        name: 'bronze'
-      }
-    });
-    body['rankId'] = rank.id;
-    const isPhoneExists = await this.usersRepository.findOne({
-      where: {
-        phone: body.phone
-      }
-    });
-    if (isPhoneExists) {
-      ErrorHelper.BadRequestException(USER.PHONE_IS_EXIST);
-    }
-    const isEmailExists = await this.usersRepository.findOne({
-      where: {
-        email: body.email
-      }
-    });
-    if (isEmailExists) {
-      ErrorHelper.BadRequestException(USER.EMAIL_IS_EXIST);
-    }
-    const user = await this.usersRepository.create({
-      ...body,
-      password: hashPassword,
-      status: EUserStatus.ACTIVE
-    });
-    await this.storeUsersRepository.create({
-      userId: user.id,
-      storeId: body.storeId,
-      rankId: user.rankId
-    });
-    const userData = user.get({ plain: true });
-    delete userData.password;
-    delete userData.otpCode;
-    delete userData.codeExpireTime;
-    delete userData.isCodeUsed;
-    delete userData.createdAt;
-    delete userData.updatedAt;
-    delete userData.deletedAt;
-    return {
-      ...userData
-    };
-  }
-
-  async update(id: number, body: UpdateUserDto): Promise<User> {
-    const user = await this.usersRepository.findOne({
-      where: {
-        id
-      }
-    });
-    if (!user) {
-      ErrorHelper.BadRequestException(USER.USER_NOT_FOUND);
-    }
-    const payload = body.password ? { ...body, password: await EncryptHelper.hash(body.password) } : body;
-    if (payload.phone) {
-      const isPhoneExists = await this.usersRepository.findOne({
-        where: {
-          phone: payload.phone
-        }
-      });
-      if (isPhoneExists && isPhoneExists.phone !== user.phone) {
-        ErrorHelper.BadRequestException(USER.PHONE_IS_EXIST);
-      }
-    }
-    Object.assign(user, payload);
-    await user.save();
-    const userData = user.get({ plain: true });
-    delete userData.password;
-    delete userData.otpCode;
-    delete userData.codeExpireTime;
-    delete userData.isCodeUsed;
-    delete userData.createdAt;
-    delete userData.updatedAt;
-    delete userData.deletedAt;
-    return {
-      ...userData
-    };
-  }
-
-  async remove(id: number): Promise<void> {
-    const user = await this.usersRepository.findOne({
-      where: {
-        id
-      }
-    });
-    if (!user) {
-      ErrorHelper.BadRequestException(USER.USER_NOT_FOUND);
-    }
-    await this.usersRepository.delete({
-      where: {
-        id
-      }
-    });
-  }
-
-  async findAll(page, limit): Promise<IPaginationRes<User>> {
-    return await this.usersRepository.paginate(
-      {
-        attributes: {
-          exclude: ['password', 'otpCode', 'codeExpireTime', 'isCodeUsed', 'createdAt', 'updatedAt', 'deletedAt']
-        }
-      },
-      page,
-      limit
-    );
-  }
-
-  async findOne(id: number): Promise<User> {
-    const user = await this.usersRepository.findOne({
-      where: {
-        id
-      },
-      attributes: {
-        exclude: ['password', 'otpCode', 'codeExpireTime', 'isCodeUsed', 'createdAt', 'updatedAt', 'deletedAt']
-      }
-    });
-    if (!user) {
-      ErrorHelper.BadRequestException(USER.USER_NOT_FOUND);
-    }
-    return user.get({ plain: true });
-  }
-
   async redeemGift(productId: number, user: User, data: RedeemToCartDto): Promise<void> {
     const quantityRedeem = data.quantity;
     const isGiftInStore = await this.productStoresRepository.findOne({
@@ -403,6 +232,22 @@ export class UsersService {
     // Cập nhật điểm thưởng của người dùng
     userData['rewardPoints'] = userData.rewardPoints - totalPoints;
     await userData.save();
+  }
+
+  async getItemInCart(page, limit, user): Promise<IPaginationRes<OrderRedeemDetail>> {
+    return await this.orderRedeemDetailsRepository.paginate(
+      {
+        where: {
+          status: EGiftStatus.NOT_REDEEMED,
+          userId: user.id
+        },
+        attributes: {
+          exclude: ['createdAt', 'updatedAt']
+        }
+      },
+      page,
+      limit
+    );
   }
 
   async getHistoryRedeem(user: User) {

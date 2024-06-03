@@ -20,18 +20,11 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { OtpDto } from './dto/otp.dto';
 import { PhoneDto } from './dto/phone.dto';
 import { RedeemToCartDto } from './dto/redeem-to-cart.dts';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
-
-  @Post('/register')
-  async register(@Body() createUserDto: CreateUserDto) {
-    const data = await this.usersService.register(createUserDto);
-    return { message: AUTH.REGISTER_SUCCESSFULLY, data };
-  }
 
   @Post('/login')
   async login(@Body() payload: LoginUserDto) {
@@ -66,52 +59,12 @@ export class UsersController {
     return { message: USER.SEND_OTP_SUCCESSFULLY };
   }
 
-  @Post()
-  @Roles(ERoleType.ADMIN)
-  @UseGuards(UserGuard, RolesGuard)
-  async create(@Body() createUserDto: CreateUserDto) {
-    const data = await this.usersService.create(createUserDto);
-    return { message: USER.CREATE_USER_SUCCESSFULLY, data };
-  }
-
-  @Patch(':id')
-  @Roles(ERoleType.ADMIN)
-  @UseGuards(UserGuard, RolesGuard)
-  async update(@Param('id', ParseIntPipe) id: number, @Body() updateUserDto: UpdateUserDto) {
-    const data = await this.usersService.update(id, updateUserDto);
-    return { message: USER.UPDATE_USER_SUCCESSFULLY, data };
-  }
-
-  @Delete(':id')
-  @Roles(ERoleType.ADMIN)
-  @UseGuards(UserGuard, RolesGuard)
-  async remove(@Param('id', ParseIntPipe) id: number) {
-    await this.usersService.remove(id);
-    return { message: USER.DELETE_USER_SUCCESSFULLY };
-  }
-
-  @Get()
-  @Roles(ERoleType.ADMIN)
-  @UseGuards(UserGuard, RolesGuard)
-  async findAll(@Query('page') page: number, @Query('limit') limit: number) {
-    const data = await this.usersService.findAll(page || FIRST_PAGE, limit || LIMIT_PAGE);
-    return { message: USER.GET_ALL_USER_SUCCESSFULLY, data };
-  }
-
   @Get('/history-redeem')
   @Roles(ERoleType.CLIENT)
   @UseGuards(UserGuard, RolesGuard)
   async getHistory(@AuthUser() user) {
     const data = await this.usersService.getHistoryRedeem(user);
     return { message: USER.GET_HISTORY_REDEEM_GIFT_SUCCESSFULLY, data };
-  }
-
-  @Get(':id')
-  @Roles(ERoleType.ADMIN)
-  @UseGuards(UserGuard, RolesGuard)
-  async findOne(@Param('id', ParseIntPipe) id: number) {
-    const data = await this.usersService.findOne(id);
-    return { message: USER.GET_USER_SUCCESSFULLY, data };
   }
 
   @Patch('/redeem-gift/:id')
@@ -136,5 +89,13 @@ export class UsersController {
   async deleteRedeemGift(@Param('id', ParseIntPipe) id: number, @AuthUser() user) {
     await this.usersService.removeGift(id, user);
     return { message: USER.REMOVE_GIFT_IN_CART_SUCCESSFULLY };
+  }
+
+  @Get('/cart')
+  @Roles(ERoleType.CLIENT)
+  @UseGuards(UserGuard, RolesGuard)
+  async getGiftInCart(@Query('page') page: number, @Query('limit') limit: number, @AuthUser() user) {
+    const data = await this.usersService.getItemInCart(page || FIRST_PAGE, limit || LIMIT_PAGE, user);
+    return { message: USER.GET_GIFT_IN_CART_SUCCESSFULLY, data };
   }
 }

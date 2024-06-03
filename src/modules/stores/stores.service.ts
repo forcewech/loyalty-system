@@ -12,24 +12,27 @@ import { ProductStoresRepository } from '../product_stores';
 import { RanksRepository } from '../ranks';
 import { RefreshTokensRepository } from '../refresh_tokens';
 import { StoreUsersRepository } from '../store_users';
+import { TwilioService } from '../twilio/twilio.service';
 import { UploadsService } from '../upload';
 import { UsersRepository } from '../users';
 import { CreateUserDto } from '../users/dto/create-user.dto';
-import { UpdateUserDto } from '../users/dto/update-user.dto';
 import { CreateGiftDto } from './dto/create-gift.dto';
 import { CreateStoreDto } from './dto/create-store.dto';
+import { CreateUserStoreDto } from './dto/create-user-store.dto';
 import { EmailDto } from './dto/email.dto';
 import { LoginStoreDto } from './dto/login-store.dtos';
 import { OtpDto } from './dto/otp.dto';
-import { UpdateStoreDto } from './dto/update-store.dto';
-import { StoresRepository } from './stores.repository';
-import { UpdateGiftDto } from './dto/update-gift.dto';
 import { PasswordDto } from './dto/password.dto';
+import { UpdateGiftDto } from './dto/update-gift.dto';
+import { UpdateStoreDto } from './dto/update-store.dto';
+import { UpdateUserStoreDto } from './dto/update-user-store.dto';
+import { StoresRepository } from './stores.repository';
 
 @Injectable()
 export class StoresService {
   constructor(
     private storesRepository: StoresRepository,
+    private twilioService: TwilioService,
     private storeUsersRepository: StoreUsersRepository,
     private usersRepository: UsersRepository,
     private ranksRepository: RanksRepository,
@@ -231,7 +234,7 @@ export class StoresService {
     await client.del(`user_${accessToken}`);
   }
 
-  async createUserInStore(body: CreateUserDto, store: Store): Promise<User> {
+  async createUserInStore(body: CreateUserStoreDto, store: Store): Promise<User> {
     const payload = body;
     const hashPassword = await EncryptHelper.hash(payload.password);
     const rank =
@@ -240,6 +243,26 @@ export class StoresService {
           name: 'bronze'
         }
       })) || null;
+    if (payload.phone) {
+      const isPhoneExists = await this.usersRepository.findOne({
+        where: {
+          phone: payload.phone
+        }
+      });
+      if (isPhoneExists) {
+        ErrorHelper.BadRequestException(USER.PHONE_IS_EXIST);
+      }
+    }
+    if (payload.email) {
+      const isEmailExists = await this.usersRepository.findOne({
+        where: {
+          email: payload.email
+        }
+      });
+      if (isEmailExists) {
+        ErrorHelper.BadRequestException(USER.EMAIL_IS_EXIST);
+      }
+    }
     const user = await this.usersRepository.create({
       ...payload,
       password: hashPassword,
@@ -264,7 +287,7 @@ export class StoresService {
     };
   }
 
-  async updateUserInStore(id: number, body: UpdateUserDto, store: Store): Promise<User> {
+  async updateUserInStore(id: number, body: UpdateUserStoreDto, store: Store): Promise<User> {
     const payload = body.password ? { ...body, password: await EncryptHelper.hash(body.password) } : body;
     const user = await this.usersRepository.findOne({
       where: {
@@ -282,6 +305,16 @@ export class StoresService {
     });
     if (!isUserInStore) {
       ErrorHelper.BadRequestException(STORE.USER_NOT_IN_STORE);
+    }
+    if (payload.email) {
+      const isEmailExists = await this.usersRepository.findOne({
+        where: {
+          email: payload.email
+        }
+      });
+      if (isEmailExists && isEmailExists.email !== user.email) {
+        ErrorHelper.BadRequestException(USER.EMAIL_IS_EXIST);
+      }
     }
     if (payload.phone) {
       const isPhoneExists = await this.usersRepository.findOne({
@@ -333,8 +366,32 @@ export class StoresService {
     });
   }
 
-  async getUsersInStore(store: Store): Promise<Store[]> {
-    return await this.storesRepository.find({
+  async getUsersInStore(id: number, store: Store): Promise<User> {
+    const user = await this.usersRepository.findOne({
+      where: {
+        id
+      },
+      attributes: {
+        exclude: ['password', 'otpCode', 'codeExpireTime', 'isCodeUsed', 'createdAt', 'updatedAt', 'deletedAt']
+      }
+    });
+    if (!user) {
+      ErrorHelper.BadRequestException(USER.USER_NOT_FOUND);
+    }
+    const userInSore = await this.storeUsersRepository.findOne({
+      where: {
+        userId: id,
+        storeId: store.id
+      }
+    });
+    if (!userInSore) {
+      ErrorHelper.BadRequestException(STORE.USER_NOT_IN_STORE);
+    }
+    return user;
+  }
+
+  async getAllUsersInStore(store: Store): Promise<Store> {
+    return await this.storesRepository.findOne({
       where: {
         id: store.id
       },
@@ -536,6 +593,11 @@ export class StoresService {
     if (!gift) {
       ErrorHelper.BadRequestException(GIFT.GIFT_NOT_FOUND);
     }
+    if (body.expirationDate) {
+      if (new Date(body.expirationDate) < new Date()) {
+        ErrorHelper.BadRequestException(GIFT.DATE_IS_NOT_IN_THE_PAST);
+      }
+    }
     const isGiftInStore = await this.productStoresRepository.findOne({
       where: {
         productId: id,
@@ -644,7 +706,7 @@ export class StoresService {
       'register',
       {
         to: body.email,
-        otp: `http://localhost:3000/reset-password/reset?forgot_password_token=${tokenData.token}`
+        otp: `http://localhost:3000/api/stores/reset-password/reset?forgot_password_token=${tokenData.token}`
       },
       {
         removeOnComplete: true
@@ -652,6 +714,65 @@ export class StoresService {
     );
     storeData['forgotPasswordToken'] = tokenData.token;
     await storeData.save();
+  }
+
+  async registerUser(body: CreateUserDto): Promise<User> {
+    const payload = body;
+    const otpCode = await CommonHelper.generateOTP();
+    const hashPassword = await EncryptHelper.hash(payload.password);
+    await this.twilioService.sendSms('+18777804236', `Your OTP code is: ${otpCode}`);
+    const rank = await this.ranksRepository.findOne({
+      where: {
+        name: 'bronze'
+      }
+    });
+    const isPhoneExists = await this.usersRepository.findOne({
+      where: {
+        phone: payload.phone
+      }
+    });
+    if (isPhoneExists) {
+      ErrorHelper.BadRequestException(USER.PHONE_IS_EXIST);
+    }
+    const isEmailExists = await this.usersRepository.findOne({
+      where: {
+        email: payload.email
+      }
+    });
+    if (isEmailExists) {
+      ErrorHelper.BadRequestException(USER.EMAIL_IS_EXIST);
+    }
+    const store = await this.storesRepository.findOne({
+      where: {
+        id: payload.storeId
+      }
+    });
+    if (!store) {
+      ErrorHelper.BadRequestException(STORE.STORE_NOT_FOUND);
+    }
+    payload['rankId'] = rank.id;
+    const user = await this.usersRepository.create({
+      ...payload,
+      password: hashPassword,
+      otpCode: otpCode,
+      codeExpireTime: new Date().setMinutes(new Date().getMinutes() + EXPIRE_TIME_OTP)
+    });
+    await this.storeUsersRepository.create({
+      userId: user.id,
+      storeId: payload.storeId,
+      rankId: user.rankId
+    });
+    const userData = user.get({ plain: true });
+    delete userData.password;
+    delete userData.otpCode;
+    delete userData.codeExpireTime;
+    delete userData.isCodeUsed;
+    delete userData.createdAt;
+    delete userData.updatedAt;
+    delete userData.deletedAt;
+    return {
+      ...userData
+    };
   }
 
   async resetPassword(forgotToken: string, body: PasswordDto): Promise<void> {

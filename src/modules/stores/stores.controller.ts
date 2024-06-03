@@ -13,24 +13,25 @@ import {
   UseGuards,
   UseInterceptors
 } from '@nestjs/common';
-import { AUTH, ERoleType, FIRST_PAGE, GIFT, LIMIT_PAGE, STORE } from 'src/constants';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { AUTH, ERoleType, FIRST_PAGE, GIFT, LIMIT_PAGE, STORE, USER } from 'src/constants';
+import { Store } from 'src/database';
+import { IToken } from 'src/interfaces';
 import { UserGuard } from 'src/utils';
 import { AuthUser, Roles } from 'src/utils/decorators';
 import { RolesGuard } from 'src/utils/guards/roles.guard';
+import { CreateUserDto } from '../users/dto/create-user.dto';
+import { CreateGiftDto } from './dto/create-gift.dto';
 import { CreateStoreDto } from './dto/create-store.dto';
+import { CreateUserStoreDto } from './dto/create-user-store.dto';
 import { EmailDto } from './dto/email.dto';
 import { LoginStoreDto } from './dto/login-store.dtos';
 import { OtpDto } from './dto/otp.dto';
-import { UpdateStoreDto } from './dto/update-store.dto';
-import { StoresService } from './stores.service';
-import { CreateUserDto } from '../users/dto/create-user.dto';
-import { UpdateUserDto } from '../users/dto/update-user.dto';
-import { IToken } from 'src/interfaces';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { UpdateGiftDto } from './dto/update-gift.dto';
-import { Store } from 'src/database';
-import { CreateGiftDto } from './dto/create-gift.dto';
 import { PasswordDto } from './dto/password.dto';
+import { UpdateGiftDto } from './dto/update-gift.dto';
+import { UpdateStoreDto } from './dto/update-store.dto';
+import { UpdateUserStoreDto } from './dto/update-user-store.dto';
+import { StoresService } from './stores.service';
 
 @Controller('stores')
 export class StoresController {
@@ -80,9 +81,15 @@ export class StoresController {
   @Post('/users')
   @Roles(ERoleType.STORE)
   @UseGuards(UserGuard, RolesGuard)
-  async createUserInStore(@Body() createUserDto: CreateUserDto, @AuthUser() store) {
+  async createUserInStore(@Body() createUserDto: CreateUserStoreDto, @AuthUser() store) {
     const data = await this.storesService.createUserInStore(createUserDto, store);
     return { message: STORE.ADD_USER_IN_STORE_SUCCESSFULLY, data };
+  }
+
+  @Post('/users/register')
+  async registerUser(@Body() createUserDto: CreateUserDto) {
+    const data = await this.storesService.registerUser(createUserDto);
+    return { message: AUTH.REGISTER_SUCCESSFULLY, data };
   }
 
   @Patch('/users/:id')
@@ -90,7 +97,7 @@ export class StoresController {
   @UseGuards(UserGuard, RolesGuard)
   async updateUserInStore(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateUserDto: UpdateUserDto,
+    @Body() updateUserDto: UpdateUserStoreDto,
     @AuthUser() store
   ) {
     const data = await this.storesService.updateUserInStore(id, updateUserDto, store);
@@ -105,11 +112,19 @@ export class StoresController {
     return { message: STORE.DELETE_USER_IN_STORE_SUCCESSFULLY };
   }
 
+  @Get('/users/:id')
+  @Roles(ERoleType.STORE)
+  @UseGuards(UserGuard, RolesGuard)
+  async getUserInStore(@Param('id', ParseIntPipe) id: number, @AuthUser() store) {
+    const data = await this.storesService.getUsersInStore(id, store);
+    return { message: USER.GET_USER_SUCCESSFULLY, data };
+  }
+
   @Get('/users')
   @Roles(ERoleType.STORE)
   @UseGuards(UserGuard, RolesGuard)
-  async getUsersInStore(@AuthUser() store) {
-    const data = await this.storesService.getUsersInStore(store);
+  async getAllUsersInStore(@AuthUser() store) {
+    const data = await this.storesService.getAllUsersInStore(store);
     return { message: STORE.GET_ALL_USER_IN_STORE_SUCCESSFULLY, data };
   }
 
