@@ -55,6 +55,7 @@
     "twilio": "^5.0.4"
   },
   "devDependencies": {
+    "@compodoc/compodoc": "^1.1.25",
     "@nestjs/cli": "^10.0.0",
     "@nestjs/schematics": "^10.0.0",
     "@nestjs/testing": "^10.0.0",

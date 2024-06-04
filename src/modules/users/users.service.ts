@@ -16,10 +16,12 @@ import { OtpDto } from './dto/otp.dto';
 import { PhoneDto } from './dto/phone.dto';
 import { RedeemToCartDto } from './dto/redeem-to-cart.dts';
 import { UsersRepository } from './users.repository';
+import { Sequelize } from 'sequelize-typescript';
 
 @Injectable()
 export class UsersService {
   constructor(
+    private sequelize: Sequelize,
     private usersRepository: UsersRepository,
     private twilioService: TwilioService,
     private giftsRepository: GiftsRepository,
@@ -196,42 +198,54 @@ export class UsersService {
 
   async getPayment(user: User): Promise<void> {
     let totalPoints = 0;
-    const userData = await this.usersRepository.findOne({
-      where: {
-        id: user.id
+    const transaction = await this.sequelize.transaction();
+    try {
+      const userData = await this.usersRepository.findOne({
+        where: {
+          id: user.id
+        },
+        transaction
+      });
+      const cart = await this.orderRedeemDetailsRepository.find({ raw: true, transaction });
+      const order = await this.orderRedeemsRepository.create(
+        {
+          userId: user.id,
+          rankId: userData.rankId,
+          redeemDate: new Date()
+        },
+        { transaction }
+      );
+      for (const item of cart) {
+        if (item.status === EGiftStatus.NOT_REDEEMED && item.userId === user.id) {
+          totalPoints += item.totalPrices;
+
+          // Cập nhật chi tiết đổi thưởng
+          await this.orderRedeemDetailsRepository.update(
+            { orderRedeemId: order.id, status: EGiftStatus.REDEEMED },
+            { where: { id: item.id }, transaction }
+          );
+
+          // Lấy thông tin quà tặng
+          const gift = await this.giftsRepository.findOne({
+            where: {
+              id: item.productId
+            },
+            transaction
+          });
+
+          // Cập nhật số lượng quà tặng
+          gift['quantity'] -= item.quantity;
+          await gift.save({ transaction });
+        }
       }
-    });
-    const cart = await this.orderRedeemDetailsRepository.find({ raw: true });
-    const order = await this.orderRedeemsRepository.create({
-      userId: user.id,
-      rankId: userData.rankId,
-      redeemDate: new Date()
-    });
-    for (const item of cart) {
-      if (item.status === EGiftStatus.NOT_REDEEMED && item.userId === user.id) {
-        totalPoints += item.totalPrices;
-
-        // Cập nhật chi tiết đổi thưởng
-        await this.orderRedeemDetailsRepository.update(
-          { orderRedeemId: order.id, status: EGiftStatus.REDEEMED },
-          { where: { id: item.id } }
-        );
-
-        // Lấy thông tin quà tặng
-        const gift = await this.giftsRepository.findOne({
-          where: {
-            id: item.productId
-          }
-        });
-
-        // Cập nhật số lượng quà tặng
-        gift['quantity'] -= item.quantity;
-        await gift.save();
-      }
+      // Cập nhật điểm thưởng của người dùng
+      userData['rewardPoints'] = userData.rewardPoints - totalPoints;
+      await userData.save({ transaction });
+      await transaction.commit();
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
     }
-    // Cập nhật điểm thưởng của người dùng
-    userData['rewardPoints'] = userData.rewardPoints - totalPoints;
-    await userData.save();
   }
 
   async getItemInCart(page, limit, user): Promise<IPaginationRes<OrderRedeemDetail>> {

@@ -1,8 +1,9 @@
-import { IsEmail, IsNotEmpty, IsString, IsStrongPassword } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, IsStrongPassword, MaxLength } from 'class-validator';
 
 export class CreateStoreDto {
   @IsString()
   @IsNotEmpty()
+  @MaxLength(255)
   name: string;
 
   @IsString()

@@ -1,7 +1,8 @@
-import { IsDate, IsNumber, IsPositive, IsString } from 'class-validator';
+import { IsDate, IsNumber, IsPositive, IsString, MaxLength } from 'class-validator';
 
 export class CreateGiftDto {
   @IsString()
+  @MaxLength(255)
   name: string;
 
   @IsNumber()
